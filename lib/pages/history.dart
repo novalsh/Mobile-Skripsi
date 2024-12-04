@@ -9,8 +9,8 @@ class HistoryPage extends StatelessWidget {
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color(0xFF55E6C1), // Hijau
-            Color(0xFF74B9FF), // Biru cerah
+            Color(0xFF6C5CE7), // Biru cerah
+            Color(0xFF6C5CE7), // Ungu
           ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,

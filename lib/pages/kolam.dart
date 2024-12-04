@@ -9,8 +9,8 @@ class KolamPage extends StatelessWidget {
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color(0xFF9B59B6),
-            Color(0xFF5DADE2)
+            Color(0xFF6C5CE7), // Biru cerah
+            Color(0xFF6C5CE7), // Ungu
           ], // Ungu muda -> Biru cerah
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -18,7 +18,7 @@ class KolamPage extends StatelessWidget {
       ),
       child: const Center(
         child: Text(
-          "Welcome to Kolam Page!",
+          "Welcome to Jadwal Page!",
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,

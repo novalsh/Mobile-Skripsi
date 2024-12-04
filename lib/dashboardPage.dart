@@ -31,51 +31,52 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF74B9FF), // Biru cerah
-                Color(0xFF6C5CE7), // Ungu
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-        ),
-        title: Text(
-          [
-            'History',
-            'Kolam',
-            'Dashboard',
-            'Sensor',
-            'Users',
-          ][_selectedIndex],
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        elevation: 0,
-      ),
+      // appBar: AppBar(
+      //   flexibleSpace: Container(
+      //     decoration: const BoxDecoration(
+      //       gradient: LinearGradient(
+      //         colors: [
+      //           Color(0xFF1F2937), // Biru cerah
+      //           Color(0xFF1F2937), // Ungu
+      //         ],
+      //         begin: Alignment.topCenter,
+      //         end: Alignment.bottomCenter,
+      //       ),
+      //     ),
+      //   ),
+      //   title: Text(
+      //     [
+      //       'History',
+      //       'Jadwal',
+      //       'Dashboard',
+      //       'Alat',
+      //       'Users',
+      //     ][_selectedIndex],
+      //     style: const TextStyle(
+      //       color: Colors.white,
+      //       fontSize: 20,
+      //       fontWeight: FontWeight.bold,
+      //     ),
+      //   ),
+      //   centerTitle: true,
+      //   elevation: 0,
+      // ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xFF6C5CE7),
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: Colors.white,
+        backgroundColor: Color(0xFF1F2937),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
             label: 'History',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.pool),
-            label: 'Kolam',
+            icon: Icon(Icons.schedule),
+            label: 'Jadwal',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
@@ -83,11 +84,11 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.sensors),
-            label: 'Sensor',
+            label: 'Alat',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Users',
+            icon: Icon(Icons.person_2),
+            label: 'Profile',
           ),
         ],
       ),
