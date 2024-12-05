@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
-class MainDashboardPage extends StatelessWidget {
+class MainDashboardPage extends StatefulWidget {
   const MainDashboardPage({super.key});
+
+  @override
+  State<MainDashboardPage> createState() => _MainDashboardPageState();
+}
+
+class _MainDashboardPageState extends State<MainDashboardPage> {
+  bool isAvailable = true; // Status awal toggle
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +26,7 @@ class MainDashboardPage extends StatelessWidget {
                 children: const [
                   CircleAvatar(
                     radius: 30,
-                    backgroundImage: AssetImage('img/profile_picture.png'),
+                    backgroundImage: AssetImage('assets/images/Logo.png'),
                   ),
                   SizedBox(width: 16),
                   Text(
@@ -33,9 +40,7 @@ class MainDashboardPage extends StatelessWidget {
                 ],
               ),
             ),
-            // Tambahkan jarak di sini
-            const SizedBox(
-                height: 24), // Memberikan jarak vertikal sebesar 24px
+            const SizedBox(height: 24), // Tambahkan jarak
 
             // Statistik Cards
             Padding(
@@ -44,17 +49,18 @@ class MainDashboardPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildStatCard("Pemberian pakan selanjutnya", "Jam\n16:00"),
-                  _buildStatCard("Pakan yang tersedia", "Kg\n20"),
+                  _buildStatCardWithToggle("Pakan yang tersedia"),
                   _buildStatCard("Pakan yang sudah diberikan", "Kg\n10"),
                 ],
               ),
             ),
             const SizedBox(height: 16),
+
             // Tabel data
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Color(0x275674),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
@@ -71,51 +77,76 @@ class MainDashboardPage extends StatelessWidget {
                     // Header tabel
                     Container(
                       padding: const EdgeInsets.all(16.0),
-                      color: Colors.grey.shade200,
+                      decoration: BoxDecoration(
+                        color: const Color(
+                            0xFF0D47A1), // Warna header tabel sama seperti stat card
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(24),
+                          topRight: Radius.circular(24),
+                        ),
+                      ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: const [
-                          Text(
-                            "Tanggal",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
+                          Expanded(
+                            child: Text(
+                              "Tanggal",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                          Text(
-                            "Jam",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
+                          Expanded(
+                            child: Text(
+                              "Jam",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                          Text(
-                            "Pakan",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
+                          Expanded(
+                            child: Text(
+                              "Pakan",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
-                          Text(
-                            "Alat",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
+                          Expanded(
+                            child: Text(
+                              "Branch",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                    Divider(
-                      color: Colors.grey.shade400,
-                      thickness: 1,
-                      height: 1,
                     ),
                     // Isi tabel
                     Expanded(
                       child: ListView(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         children: [
-                          _buildDataRow(
+                          _buildTableRow(
                               "22 April 2024", "12:00", "1.5 Kg", "Alat 1"),
-                          _buildDataRow(
-                              "23 April 2024", "14:00", "1.2 Kg", "Alat 2"),
-                          _buildDataRow(
-                              "28 April 2024", "10:00", "2.0 Kg", "Alat 2"),
-                          _buildDataRow(
-                              "30 April 2024", "08:00", "3.2 Kg", "Alat 3"),
+                          _buildTableRow(
+                              "23 April 2024", "14:00", "1.2 Kg", "Alat 1"),
+                          _buildTableRow(
+                              "28 April 2024", "10:00", "2.0 Kg", "Alat 1"),
+                          _buildTableRow(
+                              "30 April 2024", "08:00", "3.2 Kg", "Alat 1"),
                         ],
                       ),
                     ),
@@ -163,41 +194,61 @@ class MainDashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDataRow(String date, String time, String feed, String tool) {
+  Widget _buildStatCardWithToggle(String title) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      padding: const EdgeInsets.all(16.0),
+      width: 100,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1976D2), // Warna biru
+        color: isAvailable ? Colors.green : Colors.red,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Switch(
+            value: isAvailable,
+            onChanged: (bool value) {
+              setState(() {
+                isAvailable = value;
+              });
+            },
+            activeColor: Colors.white,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTableRow(String date, String time, String feed, String tool) {
+    return Container(
+      color: const Color(0x275674), // Warna baris data sama seperti stat card
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            date,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-          ),
-          Text(
-            time,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-          ),
-          Text(
-            feed,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-          ),
-          Text(
-            tool,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-          ),
+          _buildTableCell(date),
+          _buildTableCell(time),
+          _buildTableCell(feed),
+          _buildTableCell(tool),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTableCell(String text) {
+    return Expanded(
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 14, color: Colors.white),
+        textAlign: TextAlign.center,
       ),
     );
   }
