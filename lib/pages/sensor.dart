@@ -9,8 +9,8 @@ class SensorPage extends StatelessWidget {
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color(0xFF6C5CE7), // Biru cerah
-            Color(0xFF6C5CE7), // Ungu
+            Color(0xFF0D47A1), // Biru cerah
+            Color(0xFF0D47A1), // Ungu
           ], // Ungu muda -> Biru cerah
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
