@@ -14,16 +14,16 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor:
-          const Color(0xFF0D47A1), // Warna biru gelap untuk latar belakang
+          const Color.fromARGB(255, 106, 150, 171), // Warna biru gelap untuk latar belakang
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            Padding(
-              padding: const EdgeInsets.all(16.0),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
               child: Row(
-                children: const [
+                children: [
                   CircleAvatar(
                     radius: 30,
                     backgroundImage: AssetImage('assets/images/Logo.png'),
@@ -59,8 +59,9 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
             // Tabel data
             Expanded(
               child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0), // Menambahkan padding horizontal
                 decoration: BoxDecoration(
-                  color: Color(0x275674),
+                  color: const Color(0x00275674),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(24),
                     topRight: Radius.circular(24),
@@ -77,16 +78,15 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                     // Header tabel
                     Container(
                       padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: const Color(
-                            0xFF0D47A1), // Warna header tabel sama seperti stat card
-                        borderRadius: const BorderRadius.only(
+                      decoration: const BoxDecoration(
+                        color: Color.fromARGB(255, 39, 86, 116), // Warna header tabel sama seperti stat card
+                        borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(24),
                           topRight: Radius.circular(24),
                         ),
                       ),
-                      child: Row(
-                        children: const [
+                      child: const Row(
+                        children: [
                           Expanded(
                             child: Text(
                               "Tanggal",
@@ -137,16 +137,11 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                     // Isi tabel
                     Expanded(
                       child: ListView(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
                         children: [
-                          _buildTableRow(
-                              "22 April 2024", "12:00", "1.5 Kg", "Alat 1"),
-                          _buildTableRow(
-                              "23 April 2024", "14:00", "1.2 Kg", "Alat 1"),
-                          _buildTableRow(
-                              "28 April 2024", "10:00", "2.0 Kg", "Alat 1"),
-                          _buildTableRow(
-                              "30 April 2024", "08:00", "3.2 Kg", "Alat 1"),
+                          _buildTableRow(0, "22 April 2024", "12:00", "1.5 Kg", "Alat 1"),
+                          _buildTableRow(1, "23 April 2024", "14:00", "1.2 Kg", "Alat 1"),
+                          _buildTableRow(2, "28 April 2024", "10:00", "2.0 Kg", "Alat 1"),
+                          _buildTableRow(3, "30 April 2024", "08:00", "3.2 Kg", "Alat 1"),
                         ],
                       ),
                     ),
@@ -165,7 +160,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
       width: 100,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF42A5F5), // Biru terang
+        color: const Color.fromARGB(255, 39, 86, 116), // Biru terang
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -228,9 +223,12 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
     );
   }
 
-  Widget _buildTableRow(String date, String time, String feed, String tool) {
+  Widget _buildTableRow(int index, String date, String time, String feed, String tool) {
+    // Menentukan warna berdasarkan indeks ganjil atau genap
+    Color rowColor = (index % 2 == 0) ? Color(0xFF274155) : Color(0xFF6A96AB);
+
     return Container(
-      color: const Color(0x275674), // Warna baris data sama seperti stat card
+      color: rowColor,
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
