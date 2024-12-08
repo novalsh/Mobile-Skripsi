@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'dashboardPage.dart';
+import 'package:skripsi_mobile/pages/login.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,8 +13,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Lele Ranch App',
       theme: ThemeData(
-        primarySwatch: Colors.indigo,
-        scaffoldBackgroundColor: Colors.white,
+        primarySwatch: Colors.grey,
+        scaffoldBackgroundColor: const Color(0xFF0D47A1),
       ),
       home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
@@ -49,13 +49,11 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
 
-    // Start the animation
     _controller.forward();
 
-    // Navigate to DashboardPage after delay
     Future.delayed(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const DashboardPage()),
+        MaterialPageRoute(builder: (context) => LoginPage()),
       );
     });
   }
@@ -72,13 +70,24 @@ class _SplashScreenState extends State<SplashScreen>
       body: Center(
         child: FadeTransition(
           opacity: _opacityAnimation,
-          child: const Text(
-            "Welcome to Lele Ranch",
-            style: TextStyle(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF6C5CE7), // Warna ungu cerah
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/images/Logo.png',
+                width: 150, // Lebar gambar
+                height: 150, // Tinggi gambar
+              ),
+              const SizedBox(height: 20), // Jarak antara gambar dan teks
+              const Text(
+                "Welcome to Lele Ranch",
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 244, 244, 244),
+                ),
+              ),
+            ],
           ),
         ),
       ),

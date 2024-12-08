@@ -177,7 +177,7 @@ class HistoryPage extends StatelessWidget {
   Widget _buildTableRow(int index, String tanggal, String user, String sensor,
       String branch, String catatan) {
     // Menentukan warna berdasarkan indeks ganjil atau genap
-    Color rowColor = (index % 2 == 0) ? Color(0xFF274155) : Color(0xFF6A96AB);
+    Color rowColor = (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
     return Container(
       color: rowColor,
@@ -211,23 +211,23 @@ class HistoryPage extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Add history"),
-          content: Column(
+          content: const Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                decoration: const InputDecoration(labelText: "Tanggal"),
+                decoration: InputDecoration(labelText: "Tanggal"),
               ),
               TextField(
-                decoration: const InputDecoration(labelText: "User"),
+                decoration: InputDecoration(labelText: "User"),
               ),
               TextField(
-                decoration: const InputDecoration(labelText: "Sensor"),
+                decoration: InputDecoration(labelText: "Sensor"),
               ),
               TextField(
-                decoration: const InputDecoration(labelText: "Branch"),
+                decoration: InputDecoration(labelText: "Branch"),
               ),
               TextField(
-                decoration: const InputDecoration(labelText: "Catatan"),
+                decoration: InputDecoration(labelText: "Catatan"),
               ),
             ],
           ),

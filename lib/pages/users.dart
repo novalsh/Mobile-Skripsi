@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skripsi_mobile/pages/login.dart';
 
 class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
@@ -18,8 +19,8 @@ class _UsersPageState extends State<UsersPage> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF6C5CE7), // Biru cerah
-              Color(0xFF6C5CE7), // Ungu
+              Color(0xFF0D47A1), // Biru cerah
+              Color(0xFF0D47A1), // Ungu
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -75,7 +76,11 @@ class _UsersPageState extends State<UsersPage> {
                       // Aksi saat Settings di-tap
                     }),
                     _buildMenuItem(Icons.logout, "Logout", () {
-                      Navigator.pop(context); // Kembali ke halaman login
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => LoginPage()),
+                      );
                     }),
                   ],
                 ),

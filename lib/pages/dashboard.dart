@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:skripsi_mobile/dashboardPage.dart';
 
 class MainDashboardPage extends StatefulWidget {
   const MainDashboardPage({super.key});
@@ -14,7 +15,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor:
-          const Color.fromARGB(255, 106, 150, 171), // Warna biru gelap untuk latar belakang
+          const Color.fromARGB(255, 106, 150, 171), 
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,7 +226,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
 
   Widget _buildTableRow(int index, String date, String time, String feed, String tool) {
     // Menentukan warna berdasarkan indeks ganjil atau genap
-    Color rowColor = (index % 2 == 0) ? Color(0xFF274155) : Color(0xFF6A96AB);
+    Color rowColor = (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
     return Container(
       color: rowColor,

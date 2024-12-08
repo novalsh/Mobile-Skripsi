@@ -144,7 +144,7 @@ class SensorPage extends StatelessWidget {
 
   Widget _buildTableRow(int index, String code, String branch, String longitute, String latitude, bool isOnline) {
     // Menentukan warna berdasarkan indeks ganjil atau genap
-    Color rowColor = (index % 2 == 0) ? Color(0xFF274155) : Color(0xFF6A96AB);
+    Color rowColor = (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
     return Container(
       color: rowColor, 

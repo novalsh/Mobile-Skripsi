@@ -31,36 +31,6 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   flexibleSpace: Container(
-      //     decoration: const BoxDecoration(
-      //       gradient: LinearGradient(
-      //         colors: [
-      //           Color(0xFF1F2937), // Biru cerah
-      //           Color(0xFF1F2937), // Ungu
-      //         ],
-      //         begin: Alignment.topCenter,
-      //         end: Alignment.bottomCenter,
-      //       ),
-      //     ),
-      //   ),
-      //   title: Text(
-      //     [
-      //       'History',
-      //       'Jadwal',
-      //       'Dashboard',
-      //       'Alat',
-      //       'Users',
-      //     ][_selectedIndex],
-      //     style: const TextStyle(
-      //       color: Colors.white,
-      //       fontSize: 20,
-      //       fontWeight: FontWeight.bold,
-      //     ),
-      //   ),
-      //   centerTitle: true,
-      //   elevation: 0,
-      // ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
