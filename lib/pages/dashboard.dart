@@ -14,8 +14,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color.fromARGB(255, 106, 150, 171), 
+      backgroundColor: const Color.fromARGB(255, 106, 150, 171),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,7 +59,8 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
             // Tabel data
             Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0), // Menambahkan padding horizontal
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0), // Menambahkan padding horizontal
                 decoration: BoxDecoration(
                   color: const Color(0x00275674),
                   borderRadius: const BorderRadius.only(
@@ -80,7 +80,8 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                     Container(
                       padding: const EdgeInsets.all(16.0),
                       decoration: const BoxDecoration(
-                        color: Color.fromARGB(255, 39, 86, 116), // Warna header tabel sama seperti stat card
+                        color: Color.fromARGB(255, 39, 86,
+                            116), // Warna header tabel sama seperti stat card
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(24),
                           topRight: Radius.circular(24),
@@ -139,10 +140,14 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                     Expanded(
                       child: ListView(
                         children: [
-                          _buildTableRow(0, "22 April 2024", "12:00", "1.5 Kg", "Alat 1"),
-                          _buildTableRow(1, "23 April 2024", "14:00", "1.2 Kg", "Alat 1"),
-                          _buildTableRow(2, "28 April 2024", "10:00", "2.0 Kg", "Alat 1"),
-                          _buildTableRow(3, "30 April 2024", "08:00", "3.2 Kg", "Alat 1"),
+                          _buildTableRow(
+                              0, "22 April 2024", "12:00", "1.5 Kg", "Alat 1"),
+                          _buildTableRow(
+                              1, "23 April 2024", "14:00", "1.2 Kg", "Alat 1"),
+                          _buildTableRow(
+                              2, "28 April 2024", "10:00", "2.0 Kg", "Alat 1"),
+                          _buildTableRow(
+                              3, "30 April 2024", "08:00", "3.2 Kg", "Alat 1"),
                         ],
                       ),
                     ),
@@ -224,9 +229,11 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
     );
   }
 
-  Widget _buildTableRow(int index, String date, String time, String feed, String tool) {
+  Widget _buildTableRow(
+      int index, String date, String time, String feed, String tool) {
     // Menentukan warna berdasarkan indeks ganjil atau genap
-    Color rowColor = (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
+    Color rowColor =
+        (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
     return Container(
       color: rowColor,

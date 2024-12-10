@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/auth_services.dart';
+import 'package:skripsi_mobile/services/auth_services.dart';
 import 'package:skripsi_mobile/models/user.dart';
-import '../utils/secure_storage.dart';
-import '../dashboardPage.dart';  // Halaman dashboard Anda
+import '../dashboardPage.dart'; // Halaman dashboard Anda
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,31 +17,41 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  final AuthService _authService = AuthService();  
+  final AuthService _authService = AuthService();
 
   Future<void> _login() async {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
 
+    print('Attempting login with email: $email');
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
-    User? user = await _authService.login(email, password);
+    try {
+      User? user = await _authService.login(email, password);
 
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (user != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardPage()),
-      );
-    } else {
+      if (user != null) {
+        print('Navigation to DashboardPage with user: ${user.name}');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DashboardPage()),
+        );
+      } else {
+        setState(() {
+          _errorMessage = 'Email atau password salah';
+        });
+        print('Login failed: User is null.');
+      }
+    } catch (error) {
       setState(() {
-        _errorMessage = 'Email atau password salah';
+        _errorMessage = 'Login error: $error';
+      });
+      print('Login error: $error');
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }
@@ -106,7 +115,8 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator()
