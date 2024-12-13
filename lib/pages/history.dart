@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../models/history_model.dart';
+import '../services/history_services.dart';
 
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final HistoryService apiService = HistoryService();
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 106, 150, 171),
       body: SafeArea(
@@ -21,7 +26,7 @@ class HistoryPage extends StatelessWidget {
                   ),
                   SizedBox(width: 16),
                   Text(
-                    "Kolam Page",
+                    "History Page",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -31,22 +36,19 @@ class HistoryPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 24), // Jarak antara header dan tombol
 
-            // Tombol untuk membuka pop-up form
-            // Tombol untuk membuka pop-up form
+            // Tombol tambah data
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Align(
-                alignment: Alignment
-                    .centerRight, // Menempatkan tombol di sebelah kanan
+                alignment: Alignment.centerRight,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Tampilkan dialog saat tombol ditekan
                     _showFormDialog(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF274155), // Warna tombol hijau
+                    backgroundColor: const Color(0xFF274155),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -59,7 +61,7 @@ class HistoryPage extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 24), // Jarak antara tombol dan tabel
 
             // Tabel data
             Expanded(
@@ -89,79 +91,38 @@ class HistoryPage extends StatelessWidget {
                           topRight: Radius.circular(24),
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Expanded(
-                            child: Text(
-                              "Tanggal",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "User",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "Sensor",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "Branch",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "Catatan",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
+                          _buildHeaderCell("Tanggal"),
+                          _buildHeaderCell("Catatan"),
                         ],
                       ),
                     ),
-                    // Isi tabel
+                    // Fetching data dari API
                     Expanded(
-                      child: ListView(
-                        children: [
-                          _buildTableRow(0, "23 April 2024", "Admin", "Alat 1",
-                              "Branch 1", "Catatan 1"),
-                          _buildTableRow(1, "24 April 2024", "Admin", "Alat 2",
-                              "Branch 2", "Catatan 2"),
-                          _buildTableRow(2, "25 April 2024", "Admin", "Alat 3",
-                              "Branch 3", "Catatan 3"),
-                          _buildTableRow(3, "26 April 2024", "Admin", "Alat 4",
-                              "Branch 4", "Catatan 4"),
-                        ],
+                      child: FutureBuilder<List<HistoryModel>>(
+                        future: apiService.fetchHistoryData(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(child: Text('Error: ${snapshot.error}'));
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Center(child: Text('No data available.'));
+                          } else {
+                            List<HistoryModel> data = snapshot.data!;
+                            return ListView.builder(
+                              itemCount: data.length,
+                              itemBuilder: (context, index) {
+                                return _buildTableRow(
+                                  index,
+                                  data[index].date,
+                                  data[index].description,
+                                );
+                              },
+                            );
+                          }
+                        },
                       ),
                     ),
                   ],
@@ -174,9 +135,29 @@ class HistoryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTableRow(int index, String tanggal, String user, String sensor,
-      String branch, String catatan) {
-    // Menentukan warna berdasarkan indeks ganjil atau genap
+  Widget _buildHeaderCell(String text) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.white, width: 1),
+          ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Colors.white,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTableRow(int index, String tanggal, String catatan) {
     Color rowColor = (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
     return Container(
@@ -184,10 +165,7 @@ class HistoryPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          _buildTableCell(tanggal),
-          _buildTableCell(user),
-          _buildTableCell(sensor),
-          _buildTableCell(branch),
+          _buildTableCell(_formatDate(tanggal)),
           _buildTableCell(catatan),
         ],
       ),
@@ -196,35 +174,42 @@ class HistoryPage extends StatelessWidget {
 
   Widget _buildTableCell(String text) {
     return Expanded(
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 14, color: Colors.white),
-        textAlign: TextAlign.center,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          border: Border(
+            right: BorderSide(color: Colors.white.withOpacity(0.3), width: 0.5),
+          ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 14, color: Colors.white),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
 
+  String _formatDate(String dateString) {
+    try {
+      DateTime date = DateTime.parse(dateString); // Parse date from string
+      return DateFormat('d MMMM y').format(date); // Format date to desired format
+    } catch (e) {
+      return dateString; // Return original string if formatting fails
+    }
+  }
 
   void _showFormDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Add history"),
+          title: const Text("Add History"),
           content: const Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 decoration: InputDecoration(labelText: "Tanggal"),
-              ),
-              TextField(
-                decoration: InputDecoration(labelText: "User"),
-              ),
-              TextField(
-                decoration: InputDecoration(labelText: "Sensor"),
-              ),
-              TextField(
-                decoration: InputDecoration(labelText: "Branch"),
               ),
               TextField(
                 decoration: InputDecoration(labelText: "Catatan"),
@@ -234,14 +219,13 @@ class HistoryPage extends StatelessWidget {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // Menutup dialog
+                Navigator.of(context).pop();
               },
               child: const Text("Batal"),
             ),
             TextButton(
               onPressed: () {
-                // Handle submit form logic here
-                Navigator.of(context).pop(); // Menutup dialog
+                Navigator.of(context).pop();
               },
               child: const Text("Simpan"),
             ),

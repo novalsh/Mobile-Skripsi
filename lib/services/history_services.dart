@@ -1,13 +1,13 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:skripsi_mobile/models/jadwal_model.dart';
+import 'dart:convert';
+import 'package:skripsi_mobile/models/history_model.dart';
 import '../utils/secure_storage.dart';
 
-class JadwalService {
-  // URL dasar tanpa user_id
-  Future<List<JadwalModel>> fetchFoodFishData() async {
+class HistoryService {
+  Future<List<HistoryModel>> fetchHistoryData() async {
+    // Ambil token dan userId dari secure storage
     String? token = await SecureStorage.getToken();
-    int? userId = await SecureStorage.getUserId(); // Ambil user_id dari secure storage
+    int? userId = await SecureStorage.getUserId();
 
     if (token == null || token.isEmpty) {
       print('No token found, please log in again.');
@@ -19,7 +19,8 @@ class JadwalService {
       throw Exception('No user ID found, please log in again.');
     }
 
-    final String url = 'http://103.127.138.198:8080/api/foodfish/$userId';
+    // Sesuaikan URL dengan userId
+    final String url = 'http://103.127.138.198:8080/api/history/$userId';
 
     try {
       print('Sending request to API with token: $token');
@@ -34,11 +35,11 @@ class JadwalService {
       print('Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        // Jika API mengembalikan satu objek (bukan list), bungkus objek itu dalam list
+        // Jika API mengembalikan satu objek, bungkus objek itu dalam list
         List jsonResponse = [json.decode(response.body)];
 
-        List<JadwalModel> dataList = jsonResponse
-            .map((data) => JadwalModel.fromJson(data))
+        List<HistoryModel> dataList = jsonResponse
+            .map((data) => HistoryModel.fromJson(data))
             .toList();
         return dataList;
       } else {
@@ -47,6 +48,9 @@ class JadwalService {
       }
     } catch (e) {
       print('Error occurred during API request: $e');
+      if (e is http.ClientException) {
+        print('Client error: ${e.message}');
+      }
       throw Exception('Failed to load data');
     }
   }

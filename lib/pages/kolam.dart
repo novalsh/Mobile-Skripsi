@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:skripsi_mobile/models/jadwal_model.dart';
 import 'package:skripsi_mobile/utils/secure_storage.dart';
+import 'package:intl/intl.dart'; // Make sure this import is present
 import '../services/jadwal_service.dart';
-import '../models/jadwal_model.dart';
 
 class KolamPage extends StatelessWidget {
   const KolamPage({super.key});
@@ -37,7 +37,7 @@ class KolamPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 24), // Jarak antara header dan tabel
 
             // Tabel data
             Expanded(
@@ -67,41 +67,12 @@ class KolamPage extends StatelessWidget {
                           topRight: Radius.circular(24),
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Expanded(
-                            child: Text(
-                              "Weight",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "Sensor",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "Start Time",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
+                          _buildHeaderCell("Description"),
+                          _buildHeaderCell("Weight"),
+                          // _buildHeaderCell("Sensor"),
+                          _buildHeaderCell("Start Time"),
                         ],
                       ),
                     ),
@@ -123,9 +94,10 @@ class KolamPage extends StatelessWidget {
                               itemBuilder: (context, index) {
                                 return _buildTableRow(
                                   index,
-                                  data[index].weight.toString(),   // Tampilkan weight
-                                  data[index].sensor.toString(),  // Tampilkan sensor_id
-                                  data[index].onStart,             // Tampilkan onStart
+                                  data[index].description,
+                                  data[index].weight.toString(),
+                                  data[index].sensor.toString(),
+                                  data[index].onStart, // Pass onStart for formatting
                                 );
                               },
                             );
@@ -143,8 +115,29 @@ class KolamPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTableRow(int index, String weight, String sensor, String onStart) {
-    
+  Widget _buildHeaderCell(String text) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.white, width: 1),
+          ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Colors.white,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTableRow(int index, String description, String weight, String sensor, String onStart) {
     Color rowColor = (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
     return Container(
@@ -152,9 +145,10 @@ class KolamPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          _buildTableCell(weight),   
-          _buildTableCell(sensor),   
-          _buildTableCell(onStart),  
+          _buildTableCell(description),
+          _buildTableCell(weight),
+          // _buildTableCell(sensor),
+          _buildTableCell(_formatDate(onStart)), // Format date before displaying
         ],
       ),
     );
@@ -162,22 +156,49 @@ class KolamPage extends StatelessWidget {
 
   Widget _buildTableCell(String text) {
     return Expanded(
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 14, color: Colors.white),
-        textAlign: TextAlign.center,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          border: Border(
+            right: BorderSide(color: Colors.white.withOpacity(0.3), width: 0.5),
+          ),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 14, color: Colors.white),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
 
+  // Function to format date to "day month year"
+  String _formatDate(String dateString) {
+    try {
+      DateTime date = DateTime.parse(dateString); // Parse date from string
+      return DateFormat('d MMMM y').format(date); // Format date to desired format
+    } catch (e) {
+      return dateString; // Return original string if formatting fails
+    }
+  }
+
   Future<List<JadwalModel>> _fetchData() async {
-    String? token = await SecureStorage.getToken(); 
+    String? token = await SecureStorage.getToken();
 
     if (token == null || token.isEmpty) {
-      throw Exception('No token found, please log in again.'); 
+      print('No token found, please log in again.');
+      throw Exception('No token found, please log in again.');
     }
 
-    JadwalService apiService = JadwalService();
-    return apiService.fetchFoodFishData(); 
+    try {
+      print('Fetching data with token: $token'); // Debugging log
+      JadwalService apiService = JadwalService();
+      List<JadwalModel> data = await apiService.fetchFoodFishData();
+      print('Data fetched successfully: $data'); // Debugging log
+      return data;
+    } catch (e) {
+      print('Error occurred while fetching data: $e');
+      throw Exception('Failed to fetch data');
+    }
   }
 }

@@ -18,17 +18,28 @@ class AuthService {
         if (responseData['token'] != null && responseData['user'] != null) {
           final token = responseData['token'] as String;
           final userData = responseData['user'] as Map<String, dynamic>;
+          final userId = responseData['user']['id'] ?? 0; // Ambil userId
+          final message = responseData['message'] ?? 'Login successful'; // Ambil message
 
-          // Save token and user in secure storage
+          // Simpan userId dan message jika diperlukan
+          await SecureStorage.saveUserId(userId);
+          await SecureStorage.saveMessage(message);
+
+          // Simpan token dan user di secure storage
           await SecureStorage.saveToken(token);
-          await SecureStorage.saveUser(User.fromJson(userData, token));
+          await SecureStorage.saveUser(userData);
           await SecureStorage.saveEmail(email);
+
+          print('Login successful. Token saved: $token');
+          print('User ID: $userId');
+          print('Message: $message');
 
           return User.fromJson(userData, token);
         } else {
           throw Exception('Token atau user tidak ditemukan');
         }
       } else {
+        print('Login failed. Status code: ${response.statusCode}');
         throw Exception('Login gagal: ${response.body}');
       }
     } catch (error) {
