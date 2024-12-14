@@ -5,6 +5,7 @@ class User {
   final String email; // Menambahkan email
   final int branchId; // Menambahkan branchId
   final String token;
+  final String password;
 
   User({
     required this.id,
@@ -13,6 +14,7 @@ class User {
     required this.email, // Pastikan email dimasukkan di sini
     required this.branchId, // Pastikan branchId dimasukkan di sini
     required this.token,
+    required this.password,
   });
 
   factory User.fromJson(Map<String, dynamic> json, String token) {
@@ -23,6 +25,7 @@ class User {
       email: json['email'] ?? 'unknown@example.com', // Default value
       branchId: json['branch_id'] ?? 0, // Default value
       token: token,
+      password: json['password'] ?? '',
     );
   }
 }

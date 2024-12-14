@@ -14,18 +14,9 @@ class _UsersPageState extends State<UsersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 106, 150, 171),
       body: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF0D47A1), // Biru cerah
-              Color(0xFF0D47A1), // Ungu
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
@@ -96,10 +87,14 @@ class _UsersPageState extends State<UsersPage> {
   Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: const Color.fromARGB(255, 39, 86, 116), // Sama seperti dashboard
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
-        leading: Icon(icon, color: const Color(0xFF9B59B6)),
-        title: Text(title),
+        leading: Icon(icon, color: Colors.white),
+        title: Text(
+          title,
+          style: const TextStyle(color: Colors.white),
+        ),
         onTap: onTap,
       ),
     );
@@ -116,13 +111,22 @@ class _UsersPageState extends State<UsersPage> {
         return AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text("Edit Profile"),
+          backgroundColor: const Color.fromARGB(255, 106, 150, 171),
+          title: const Text(
+            "Edit Profile",
+            style: TextStyle(color: Colors.white),
+          ),
           content: TextField(
             controller: nameController,
             decoration: const InputDecoration(
               labelText: "Name",
+              labelStyle: TextStyle(color: Colors.white70),
               border: OutlineInputBorder(),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+              ),
             ),
+            style: const TextStyle(color: Colors.white),
           ),
           actions: [
             TextButton(
