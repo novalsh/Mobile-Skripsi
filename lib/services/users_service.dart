@@ -118,4 +118,20 @@ class UserService {
       throw Exception('Failed to verify token: ${response.body}');
     }
   }
+  Future<void> updatePassword(int id, String oldPassword, String newPassword) async {
+  final url = Uri.parse('$baseUrl/api/users/$id/password');
+  final response = await http.put(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'oldPassword': oldPassword,
+      'newPassword': newPassword,
+    }),
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception('Failed to update password: ${response.body}');
+  }
+}
+
 }
