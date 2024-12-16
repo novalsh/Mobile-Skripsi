@@ -3,13 +3,156 @@ import 'package:intl/intl.dart';
 import '../models/history_model.dart';
 import '../services/history_services.dart';
 
-class HistoryPage extends StatelessWidget {
+class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final HistoryService apiService = HistoryService();
+  _HistoryPageState createState() => _HistoryPageState();
+}
 
+class _HistoryPageState extends State<HistoryPage> {
+  final HistoryService apiService = HistoryService();
+  Future<List<HistoryModel>> _historyDataFuture = Future.value([]); // Initialize with an empty list
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshData();
+  }
+
+  Future<void> _refreshData() async {
+    try {
+      setState(() {
+        _historyDataFuture = apiService.fetchHistoryDataByToken();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error loading data: $e")),
+      );
+    }
+  }
+
+  void _showFormDialog(BuildContext context) {
+    TextEditingController dateController = TextEditingController();
+    TextEditingController noteController = TextEditingController();
+    int? selectedSensorId;
+    int? selectedBranchId;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Add History"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: dateController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: "Tanggal",
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.calendar_today),
+                        onPressed: () async {
+                          DateTime? selectedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (selectedDate != null) {
+                            String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+                            dateController.text = formattedDate;
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: noteController,
+                    decoration: const InputDecoration(labelText: "Catatan"),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(labelText: "Sensor"),
+                    items: [
+                      DropdownMenuItem(value: 1, child: Text("Sensor 1")),
+                      DropdownMenuItem(value: 2, child: Text("Sensor 2")),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        selectedSensorId = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(labelText: "Branch"),
+                    items: [
+                      DropdownMenuItem(value: 1, child: Text("Branch 1")),
+                      DropdownMenuItem(value: 2, child: Text("Branch 2")),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        selectedBranchId = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text("Batal"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (dateController.text.isEmpty ||
+                        noteController.text.isEmpty ||
+                        selectedSensorId == null ||
+                        selectedBranchId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Harap isi semua field")),
+                      );
+                      return;
+                    }
+
+                    try {
+                      await apiService.createHistory(
+                        sensorId: selectedSensorId!,
+                        description: noteController.text,
+                        date: dateController.text,
+                        branchId: selectedBranchId!,
+                      );
+
+                      _refreshData();
+
+                      Navigator.of(context).pop();
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("History berhasil ditambahkan")),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Gagal menambahkan history: $e")),
+                      );
+                    }
+                  },
+                  child: const Text("Simpan"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 106, 150, 171),
       body: SafeArea(
@@ -36,7 +179,7 @@ class HistoryPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24), // Jarak antara header dan tombol
+            const SizedBox(height: 24),
 
             // Tombol tambah data
             Padding(
@@ -44,9 +187,7 @@ class HistoryPage extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
-                  onPressed: () {
-                    _showFormDialog(context);
-                  },
+                  onPressed: () => _showFormDialog(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF274155),
                     shape: RoundedRectangleBorder(
@@ -61,7 +202,7 @@ class HistoryPage extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 24), // Jarak antara tombol dan tabel
+            const SizedBox(height: 24),
 
             // Tabel data
             Expanded(
@@ -98,10 +239,9 @@ class HistoryPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Fetching data dari API
                     Expanded(
                       child: FutureBuilder<List<HistoryModel>>(
-                        future: apiService.fetchHistoryData(),
+                        future: _historyDataFuture,
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
                             return const Center(child: CircularProgressIndicator());
@@ -192,46 +332,10 @@ class HistoryPage extends StatelessWidget {
 
   String _formatDate(String dateString) {
     try {
-      DateTime date = DateTime.parse(dateString); // Parse date from string
-      return DateFormat('d MMMM y').format(date); // Format date to desired format
+      DateTime date = DateTime.parse(dateString);
+      return DateFormat('d MMMM y').format(date);
     } catch (e) {
-      return dateString; // Return original string if formatting fails
+      return dateString;
     }
-  }
-
-  void _showFormDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Add History"),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: InputDecoration(labelText: "Tanggal"),
-              ),
-              TextField(
-                decoration: InputDecoration(labelText: "Catatan"),
-              ),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Batal"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Simpan"),
-            ),
-          ],
-        );
-      },
-    );
   }
 }

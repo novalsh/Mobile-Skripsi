@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:skripsi_mobile/models/user.dart';
+import 'package:skripsi_mobile/models/user_model.dart';
 import 'package:skripsi_mobile/utils/secure_storage.dart';
 
 class AuthService {
@@ -21,11 +21,16 @@ class AuthService {
           final userId = responseData['user']['id'] ?? 0; // Ambil userId
           final message = responseData['message'] ?? 'Login successful'; // Ambil message
 
+          // *** Bersihkan token lama sebelum menyimpan yang baru ***
+          print('Clearing old token...');
+          await SecureStorage.clearToken();
+
           // Simpan userId dan message jika diperlukan
           await SecureStorage.saveUserId(userId);
           await SecureStorage.saveMessage(message);
 
           // Simpan token dan user di secure storage
+          print('Saving new token...');
           await SecureStorage.saveToken(token);
           await SecureStorage.saveUser(userData);
           await SecureStorage.saveEmail(email);

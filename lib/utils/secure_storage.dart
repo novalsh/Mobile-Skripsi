@@ -44,4 +44,9 @@ class SecureStorage {
   static Future<String?> getMessage() async {
     return await _storage.read(key: 'message');
   }
+  static Future<void> clearToken() async {
+  print('Clearing token from secure storage...');
+  await _storage.delete(key: 'token');
+}
+
 }

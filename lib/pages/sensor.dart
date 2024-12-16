@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:skripsi_mobile/models/sensor_model.dart';
+import 'package:skripsi_mobile/services/sensor_services.dart';
 
 class SensorPage extends StatelessWidget {
   const SensorPage({super.key});
@@ -6,7 +8,7 @@ class SensorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 106, 150, 171), 
+      backgroundColor: const Color.fromARGB(255, 106, 150, 171),
       body: SafeArea(
         child: Column(
           children: [
@@ -31,12 +33,12 @@ class SensorPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24), 
+            const SizedBox(height: 24),
 
             // Tabel data
             Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0), 
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 decoration: BoxDecoration(
                   color: const Color(0x00275674),
                   borderRadius: const BorderRadius.only(
@@ -52,10 +54,11 @@ class SensorPage extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
+                    // Header tabel
                     Container(
                       padding: const EdgeInsets.all(16.0),
                       decoration: const BoxDecoration(
-                        color: Color.fromARGB(255, 39, 86, 116), 
+                        color: Color.fromARGB(255, 39, 86, 116),
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(24),
                           topRight: Radius.circular(24),
@@ -76,7 +79,7 @@ class SensorPage extends StatelessWidget {
                           ),
                           Expanded(
                             child: Text(
-                              "Branch",
+                              "Latitude",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -87,18 +90,7 @@ class SensorPage extends StatelessWidget {
                           ),
                           Expanded(
                             child: Text(
-                              "latitude",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              "longitude",
+                              "Longitude",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -121,15 +113,45 @@ class SensorPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // Isi tabel
+
+                    // Isi tabel menggunakan FutureBuilder
                     Expanded(
-                      child: ListView(
-                        children: [
-                          _buildTableRow(0, "1", "Branch 1", "1.234", "2.345", true),
-                          _buildTableRow(1, "2", "Branch 2", "1.234", "2.345", false),
-                          _buildTableRow(2, "3", "Branch 3", "1.234", "2.345", true),
-                          _buildTableRow(3, "4", "Branch 4", "1.234", "2.345", false),
-                        ],
+                      child: FutureBuilder<List<SensorModel>>(
+                        future: SensorService().fetchSensorData(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                'Error: ${snapshot.error}',
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            );
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Center(
+                              child: Text(
+                                'No data available',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            );
+                          }
+
+                          final sensors = snapshot.data!;
+                          return ListView.builder(
+                            itemCount: sensors.length,
+                            itemBuilder: (context, index) {
+                              final sensor = sensors[index];
+                              return _buildTableRow(
+                                index,
+                                sensor.code,
+                                sensor.latitude.toString(),
+                                sensor.longitude.toString(),
+                                sensor.isOn,
+                              );
+                            },
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -142,19 +164,18 @@ class SensorPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTableRow(int index, String code, String branch, String longitute, String latitude, bool isOnline) {
+  Widget _buildTableRow(int index, String code, String latitude, String longitude, bool isOnline) {
     // Menentukan warna berdasarkan indeks ganjil atau genap
     Color rowColor = (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
     return Container(
-      color: rowColor, 
+      color: rowColor,
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
           _buildTableCell(code),
-          _buildTableCell(branch),
-          _buildTableCell(longitute),
           _buildTableCell(latitude),
+          _buildTableCell(longitude),
           _buildTableCell(isOnline ? "Online" : "Offline"),
         ],
       ),

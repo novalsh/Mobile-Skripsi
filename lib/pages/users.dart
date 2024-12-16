@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:skripsi_mobile/pages/login.dart';
 import 'package:skripsi_mobile/services/users_service.dart';
 import 'package:skripsi_mobile/utils/secure_storage.dart';
-import 'package:skripsi_mobile/models/user.dart';
+import 'package:skripsi_mobile/models/user_model.dart';
 
 class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
@@ -106,7 +106,7 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   @override
-  Widget build(BuildContext context) {
+Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 106, 150, 171),
       body: isLoading
@@ -119,11 +119,38 @@ class _UsersPageState extends State<UsersPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.blue.shade200,
-                        backgroundImage:
-                            const AssetImage('assets/images/Profile.png'),
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.blue.shade200,
+                              Colors.blue.shade400,
+                              Colors.blue.shade600,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              offset: const Offset(2, 4),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            username.isNotEmpty ? username[0].toUpperCase() : "?",
+                            style: const TextStyle(
+                              fontSize: 40,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 20),
                       Text(
@@ -152,7 +179,6 @@ class _UsersPageState extends State<UsersPage> {
                           _buildMenuItem(Icons.lock, "Change Password", () {
                             _showChangePasswordDialog();
                           }),
-                          _buildMenuItem(Icons.settings, "Settings", () {}),
                           _buildMenuItem(Icons.logout, "Logout", () {
                             Navigator.pushReplacement(
                               context,

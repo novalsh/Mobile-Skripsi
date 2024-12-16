@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:skripsi_mobile/models/user.dart';
+import 'package:skripsi_mobile/models/user_model.dart';
 import 'package:skripsi_mobile/utils/secure_storage.dart';
 
 class UserService {

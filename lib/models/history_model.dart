@@ -1,25 +1,28 @@
 class HistoryModel {
-  final int sensor;
-  final int user;
+  final int id;
+  final int sensorId;
+  final int userId;
   final String description;
   final String date;
-  final int Branch;
+  final int branchId;
 
   HistoryModel({
-    required this.sensor,
-    required this.user,
+    required this.id,
+    required this.sensorId,
+    required this.userId,
     required this.description,
     required this.date,
-    required this.Branch,
+    required this.branchId,
   });
 
   factory HistoryModel.fromJson(Map<String, dynamic> json) {
     return HistoryModel(
-      sensor: json['sensor_id'],
-      user: json['user_id'],
+      id: json['id'],
+      sensorId: json['sensor_id'],
+      userId: json['user_id'],
       description: json['description'],
       date: json['date'],
-      Branch: json['branch_id'],
+      branchId: json['branch_id'],
     );
   }
 }
