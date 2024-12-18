@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/history_model.dart';
+import '../models/history_model.dart'; // Ensure this import is correct
 import '../services/history_services.dart';
+import '../services/sensor_services.dart';
+import '../models/sensor_model.dart';
+import '../utils/secure_storage.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -12,12 +15,34 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
   final HistoryService apiService = HistoryService();
-  Future<List<HistoryModel>> _historyDataFuture = Future.value([]); // Initialize with an empty list
+  final SensorService sensorService = SensorService();
+  Future<List<HistoryModel>> _historyDataFuture = Future.value([]);
+  Future<List<SensorModel>> _sensorDataFuture = Future.value([]);
+  String? branchId;
 
   @override
   void initState() {
     super.initState();
-    _refreshData();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      final secureStorage = SecureStorage();
+      branchId = await secureStorage.getBranchId();
+      if (branchId == null || branchId!.isEmpty) {
+        throw Exception("Branch ID not found. Please log in again.");
+      }
+
+      setState(() {
+        _historyDataFuture = apiService.fetchHistoryDataByToken();
+        _sensorDataFuture = sensorService.fetchSensorData(branchId!);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error initializing data: $e")),
+      );
+    }
   }
 
   Future<void> _refreshData() async {
@@ -27,27 +52,28 @@ class _HistoryPageState extends State<HistoryPage> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error loading data: $e")),
+        SnackBar(content: Text("Error refreshing data: $e")),
       );
     }
   }
 
   void _showFormDialog(BuildContext context) {
-    TextEditingController dateController = TextEditingController();
-    TextEditingController noteController = TextEditingController();
-    int? selectedSensorId;
-    int? selectedBranchId;
+  TextEditingController dateController = TextEditingController();
+  TextEditingController noteController = TextEditingController();
+  int? selectedSensorId;
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text("Add History"),
-              content: Column(
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text("Add History"),
+            content: SingleChildScrollView(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Input Tanggal
                   TextField(
                     controller: dateController,
                     readOnly: true,
@@ -63,7 +89,9 @@ class _HistoryPageState extends State<HistoryPage> {
                             lastDate: DateTime(2100),
                           );
                           if (selectedDate != null) {
-                            String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+                            String formattedDate =
+                                DateFormat('yyyy-MM-ddTHH:mm:ssZ')
+                                    .format(selectedDate.toUtc());
                             dateController.text = formattedDate;
                           }
                         },
@@ -71,85 +99,125 @@ class _HistoryPageState extends State<HistoryPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+
+                  // Input Catatan
                   TextField(
                     controller: noteController,
                     decoration: const InputDecoration(labelText: "Catatan"),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<int>(
-                    decoration: const InputDecoration(labelText: "Sensor"),
-                    items: [
-                      DropdownMenuItem(value: 1, child: Text("Sensor 1")),
-                      DropdownMenuItem(value: 2, child: Text("Sensor 2")),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        selectedSensorId = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<int>(
-                    decoration: const InputDecoration(labelText: "Branch"),
-                    items: [
-                      DropdownMenuItem(value: 1, child: Text("Branch 1")),
-                      DropdownMenuItem(value: 2, child: Text("Branch 2")),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        selectedBranchId = value;
-                      });
+
+                  // Dropdown Sensor
+                  FutureBuilder<List<SensorModel>>(
+                    future: _sensorDataFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return Text(
+                            "Error loading sensors: ${snapshot.error}");
+                      } else if (!snapshot.hasData ||
+                          snapshot.data!.isEmpty) {
+                        return const Text("No sensors available.");
+                      } else {
+                        return DropdownButtonFormField<int>(
+                          decoration:
+                              const InputDecoration(labelText: "Sensor"),
+                          items: snapshot.data!
+                              .where((sensor) => sensor.id != 0)
+                              .map((sensor) {
+                            return DropdownMenuItem<int>(
+                              value: sensor.id,
+                              child: Text(sensor.code),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedSensorId = value;
+                            });
+                          },
+                        );
+                      }
                     },
                   ),
                 ],
               ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text("Batal"),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    if (dateController.text.isEmpty ||
-                        noteController.text.isEmpty ||
-                        selectedSensorId == null ||
-                        selectedBranchId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Harap isi semua field")),
-                      );
-                      return;
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("Batal"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  // Validasi Field
+                  if (dateController.text.isEmpty ||
+                      noteController.text.isEmpty ||
+                      selectedSensorId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("Harap isi semua field")),
+                    );
+                    return;
+                  }
+
+                  try {
+                    // Ambil user_id dan branch_id
+                    final int? userId = await SecureStorage.getUserId();
+                    if (userId == null) {
+                      throw Exception("User ID not found. Please log in.");
                     }
 
-                    try {
-                      await apiService.createHistory(
-                        sensorId: selectedSensorId!,
-                        description: noteController.text,
-                        date: dateController.text,
-                        branchId: selectedBranchId!,
-                      );
-
-                      _refreshData();
-
-                      Navigator.of(context).pop();
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("History berhasil ditambahkan")),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Gagal menambahkan history: $e")),
-                      );
+                    final String? branchId =
+                        await SecureStorage().getBranchId();
+                    if (branchId == null || branchId.isEmpty) {
+                      throw Exception("Branch ID not found. Please log in.");
                     }
-                  },
-                  child: const Text("Simpan"),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+
+                    // Debugging Nilai Field
+                    print("DEBUG: sensor_id: $selectedSensorId");
+                    print("DEBUG: description: ${noteController.text}");
+                    print("DEBUG: date: ${dateController.text}");
+                    print("DEBUG: user_id: $userId");
+                    print("DEBUG: branch_id: $branchId");
+
+                    // Kirim Data ke Server
+                    await apiService.createHistory(
+                      sensorId: selectedSensorId!,
+                      description: noteController.text,
+                      date: dateController.text,
+                      userId: userId,
+                      branchId: int.parse(branchId),
+                    );
+
+                    // Refresh Data
+                    _refreshData();
+
+                    // Tutup Dialog
+                    Navigator.of(context).pop();
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("History berhasil ditambahkan")),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text("Gagal menambahkan history: $e")),
+                    );
+                  }
+                },
+                child: const Text("Simpan"),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +226,6 @@ class _HistoryPageState extends State<HistoryPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Row(
@@ -180,8 +247,6 @@ class _HistoryPageState extends State<HistoryPage> {
               ),
             ),
             const SizedBox(height: 24),
-
-            // Tombol tambah data
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Align(
@@ -196,15 +261,15 @@ class _HistoryPageState extends State<HistoryPage> {
                   ),
                   child: const Text(
                     'Add +',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                   ),
                 ),
               ),
             ),
-
             const SizedBox(height: 24),
-
-            // Tabel data
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -243,12 +308,17 @@ class _HistoryPageState extends State<HistoryPage> {
                       child: FutureBuilder<List<HistoryModel>>(
                         future: _historyDataFuture,
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
                           } else if (snapshot.hasError) {
-                            return Center(child: Text('Error: ${snapshot.error}'));
-                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const Center(child: Text('No data available.'));
+                            return Center(
+                                child: Text('Error: ${snapshot.error}'));
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.isEmpty) {
+                            return const Center(
+                                child: Text('No data available.'));
                           } else {
                             List<HistoryModel> data = snapshot.data!;
                             return ListView.builder(
@@ -298,7 +368,8 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   Widget _buildTableRow(int index, String tanggal, String catatan) {
-    Color rowColor = (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
+    Color rowColor =
+        (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
     return Container(
       color: rowColor,

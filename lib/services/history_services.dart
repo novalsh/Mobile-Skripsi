@@ -30,9 +30,8 @@ class HistoryService {
         List<dynamic> jsonResponse = json.decode(response.body);
 
         // Map response data to HistoryModel list
-        List<HistoryModel> histories = jsonResponse
-            .map((data) => HistoryModel.fromJson(data))
-            .toList();
+        List<HistoryModel> histories =
+            jsonResponse.map((data) => HistoryModel.fromJson(data)).toList();
 
         return histories;
       } else {
@@ -44,46 +43,45 @@ class HistoryService {
     }
   }
 
-
   // Create History
   Future<void> createHistory({
     required int sensorId,
     required String description,
     required String date,
     required int branchId,
+    required int userId,
   }) async {
-    String? token = await SecureStorage.getToken();
-    if (token == null || token.isEmpty) {
-      throw Exception('No token found, please log in again.');
+    final String? token = await SecureStorage.getToken();
+    if (token == null) {
+      throw Exception("Token not found. Please log in.");
     }
 
     final String url = 'http://103.127.138.198:8080/api/history';
+
     final Map<String, dynamic> payload = {
-      'sensor_id': sensorId,
-      'description': description,
-      'date': date,
-      'branch_id': branchId,
+      "sensor_id": sensorId,
+      "description": description,
+      "date": date,
+      "user_id": userId,
+      "branch_id": branchId,
     };
 
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: json.encode(payload),
-      ).timeout(const Duration(seconds: 30));
+    // Debugging Payload
+    print("Payload sent to server: $payload");
 
-      print('Create History Response Status Code: ${response.statusCode}');
-      print('Create History Response Body: ${response.body}');
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(payload),
+    );
 
-      if (response.statusCode != 201) {
-        throw Exception('Failed to create history: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error in createHistory: $e');
-      throw Exception('Failed to create history: $e');
+    // Debugging Respons Server
+    print("Server Response: ${response.body}");
+    if (response.statusCode != 201) {
+      throw Exception("Failed to create history: ${response.body}");
     }
   }
 }
