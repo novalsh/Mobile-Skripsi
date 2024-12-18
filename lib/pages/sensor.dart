@@ -77,7 +77,6 @@ class SensorPage extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        // Header tabel
                         Container(
                           padding: const EdgeInsets.all(16.0),
                           decoration: const BoxDecoration(
@@ -136,8 +135,6 @@ class SensorPage extends StatelessWidget {
                             ],
                           ),
                         ),
-
-                        // Isi tabel menggunakan FutureBuilder
                         Expanded(
                           child: FutureBuilder<String?>(
                             future: _getBranchId(),
@@ -160,7 +157,7 @@ class SensorPage extends StatelessWidget {
 
                               return FutureBuilder<List<SensorModel>>(
                                 future: SensorService().fetchSensorData(
-                                    branchId), // Pastikan branchId digunakan di sini
+                                    branchId), 
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {

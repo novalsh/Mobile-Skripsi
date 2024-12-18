@@ -4,7 +4,7 @@ import 'package:skripsi_mobile/models/history_model.dart';
 import '../utils/secure_storage.dart';
 
 class HistoryService {
-  // Fetch History Data by Token
+  
   Future<List<HistoryModel>> fetchHistoryDataByToken() async {
     String? token = await SecureStorage.getToken();
 
@@ -26,10 +26,10 @@ class HistoryService {
       print('History API Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        // Parse JSON response
+        
         List<dynamic> jsonResponse = json.decode(response.body);
 
-        // Map response data to HistoryModel list
+       
         List<HistoryModel> histories =
             jsonResponse.map((data) => HistoryModel.fromJson(data)).toList();
 
@@ -78,7 +78,7 @@ class HistoryService {
       body: json.encode(payload),
     );
 
-    // Debugging Respons Server
+
     print("Server Response: ${response.body}");
     if (response.statusCode != 201) {
       throw Exception("Failed to create history: ${response.body}");

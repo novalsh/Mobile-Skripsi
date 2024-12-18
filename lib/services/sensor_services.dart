@@ -10,12 +10,12 @@ class SensorService {
 
     // Ambil token dari SecureStorage
     final token = await SecureStorage.getToken();
-    print('Token used in request: $token'); // Log token untuk debug
+    print('Token used in request: $token'); 
 
     final response = await http.get(
       url,
       headers: {
-        'Authorization': 'Bearer $token', // Tambahkan token di header
+        'Authorization': 'Bearer $token', 
         'Content-Type': 'application/json',
       },
     );
