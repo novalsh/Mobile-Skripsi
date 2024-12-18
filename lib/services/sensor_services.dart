@@ -1,50 +1,40 @@
 import 'dart:convert';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:skripsi_mobile/models/sensor_model.dart';
 import 'package:skripsi_mobile/utils/secure_storage.dart';
 
+import '../models/sensor_model.dart';
+
 class SensorService {
-  Future<List<SensorModel>> fetchSensorData() async {
-    String? token = await SecureStorage.getToken();
-    int? userId = await SecureStorage.getUserId();
+  Future<List<SensorModel>> fetchSensorData(String branchId) async {
+    final url = Uri.parse('http://103.127.138.198:8080/api/sensors/branch/$branchId');
 
-    if (token == null || token.isEmpty){
-      print('No token found, please log in again.');
-      throw Exception('No token found, please log in again.');
-    }
-    if (userId == null){
-      print('No user ID found, please log in again.');
-      throw Exception('No user ID found, please log in again.');
-    }
-    final String url = 'http://103.127.138.198:8080/api/sensor/$userId';
+    // Ambil token dari SecureStorage
+    final token = await SecureStorage.getToken();
+    print('Token used in request: $token'); // Log token untuk debug
 
-    try{
-      print('Sending request to API with token: $token');
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      ).timeout(Duration(seconds: 30));
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token', // Tambahkan token di header
+        'Content-Type': 'application/json',
+      },
+    );
 
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: ${response.body}');
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
-      if (response.statusCode == 200){
-        List jsonResponse = [json.decode(response.body)];
-        List<SensorModel> dataList = jsonResponse.map((data) => SensorModel.fromJson(data)).toList();
-        return dataList;
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      if (data is List) {
+        return data.map((json) => SensorModel.fromJson(json)).toList();
       } else {
-        print('Failed to load data. Status code: ${response.statusCode}');
-        throw Exception('Failed to load data');
+        throw Exception('Unexpected response format: ${response.body}');
       }
-    } catch (e) {
-      print('Error: $e');
-      if (e is http.ClientException) {
-        print('Client error: ${e.message}');
-      }
-      throw Exception('Failed to load data');
+    } else if (response.statusCode == 401) {
+      throw Exception('Unauthorized: Token may be invalid or expired');
+    } else {
+      throw Exception('Failed to load sensor data: ${response.body}');
     }
   }
 }

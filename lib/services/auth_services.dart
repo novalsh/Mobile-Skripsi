@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:skripsi_mobile/models/user_model.dart';
+
 import 'package:skripsi_mobile/utils/secure_storage.dart';
+
 
 class AuthService {
   Future<User?> login(String email, String password) async {
@@ -18,8 +20,10 @@ class AuthService {
         if (responseData['token'] != null && responseData['user'] != null) {
           final token = responseData['token'] as String;
           final userData = responseData['user'] as Map<String, dynamic>;
-          final userId = responseData['user']['id'] ?? 0; // Ambil userId
-          final message = responseData['message'] ?? 'Login successful'; // Ambil message
+          final userId = responseData['user']['id'] ?? 0;
+          final branchId = userData['branch_id']?.toString();
+          final message =
+              responseData['message'] ?? 'Login successful'; // Ambil message
 
           // *** Bersihkan token lama sebelum menyimpan yang baru ***
           print('Clearing old token...');
@@ -34,10 +38,12 @@ class AuthService {
           await SecureStorage.saveToken(token);
           await SecureStorage.saveUser(userData);
           await SecureStorage.saveEmail(email);
+          await SecureStorage().saveBranchId(branchId!);
 
           print('Login successful. Token saved: $token');
           print('User ID: $userId');
           print('Message: $message');
+          print('Branch ID: $branchId');
 
           return User.fromJson(userData, token);
         } else {
@@ -52,4 +58,6 @@ class AuthService {
       rethrow;
     }
   }
+
+  
 }

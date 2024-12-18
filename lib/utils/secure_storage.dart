@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SecureStorage {
   static const _storage = FlutterSecureStorage();
@@ -44,9 +45,24 @@ class SecureStorage {
   static Future<String?> getMessage() async {
     return await _storage.read(key: 'message');
   }
-  static Future<void> clearToken() async {
-  print('Clearing token from secure storage...');
-  await _storage.delete(key: 'token');
-}
 
+  static Future<void> clearToken() async {
+    print('Clearing token from secure storage...');
+    await _storage.delete(key: 'token');
+  }
+
+  Future<void> saveBranchId(String? branchId) async {
+    if (branchId != null) {
+      final prefs = await SharedPreferences.getInstance();
+      print('Saving Branch ID: $branchId'); // Log branchId yang disimpan
+      await prefs.setString('branch_id', branchId);
+    }
+  }
+
+  Future<String?> getBranchId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final branchId = prefs.getString('branch_id');
+    print('Retrieved Branch ID: $branchId'); // Log branchId yang diambil
+    return branchId;
+  }
 }
