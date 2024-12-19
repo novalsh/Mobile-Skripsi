@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skripsi_mobile/models/jadwal_model.dart';
 import 'package:skripsi_mobile/utils/secure_storage.dart';
-import 'package:intl/intl.dart'; // Make sure this import is present
+import 'package:intl/intl.dart';
 import '../services/jadwal_service.dart';
 
 class KolamPage extends StatelessWidget {
@@ -16,7 +16,6 @@ class KolamPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Row(
@@ -37,9 +36,7 @@ class KolamPage extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24), // Jarak antara header dan tabel
-
-            // Tabel data
+            const SizedBox(height: 24),
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -71,22 +68,25 @@ class KolamPage extends StatelessWidget {
                         children: [
                           _buildHeaderCell("Description"),
                           _buildHeaderCell("Weight"),
-                          // _buildHeaderCell("Sensor"),
                           _buildHeaderCell("Start Time"),
                         ],
                       ),
                     ),
-                    // Fetching data dari API
                     Expanded(
                       child: FutureBuilder<List<JadwalModel>>(
-                        future: _fetchData(), // Memanggil fungsi _fetchData untuk mendapatkan data
+                        future: _fetchData(),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(child: CircularProgressIndicator());
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
                           } else if (snapshot.hasError) {
-                            return Center(child: Text('Error: ${snapshot.error}'));
-                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const Center(child: Text('No data available.'));
+                            return Center(
+                                child: Text('Error: ${snapshot.error}'));
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.isEmpty) {
+                            return const Center(
+                                child: Text('No data available.'));
                           } else {
                             List<JadwalModel> data = snapshot.data!;
                             return ListView.builder(
@@ -96,8 +96,7 @@ class KolamPage extends StatelessWidget {
                                   index,
                                   data[index].description,
                                   data[index].weight.toString(),
-                                  data[index].sensor.toString(),
-                                  data[index].onStart, // Pass onStart for formatting
+                                  data[index].onStart,
                                 );
                               },
                             );
@@ -137,8 +136,10 @@ class KolamPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTableRow(int index, String description, String weight, String sensor, String onStart) {
-    Color rowColor = (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
+  Widget _buildTableRow(
+      int index, String description, String weight, String onStart) {
+    Color rowColor =
+        (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
     return Container(
       color: rowColor,
@@ -147,8 +148,7 @@ class KolamPage extends StatelessWidget {
         children: [
           _buildTableCell(description),
           _buildTableCell(weight),
-          // _buildTableCell(sensor),
-          _buildTableCell(_formatDate(onStart)), // Format date before displaying
+          _buildTableCell(_formatDate(onStart)),
         ],
       ),
     );
@@ -172,33 +172,28 @@ class KolamPage extends StatelessWidget {
     );
   }
 
-  // Function to format date to "day month year"
   String _formatDate(String dateString) {
     try {
-      DateTime date = DateTime.parse(dateString); // Parse date from string
-      return DateFormat('d MMMM y').format(date); // Format date to desired format
+      DateTime date = DateTime.parse(dateString);
+      return DateFormat('d MMMM y').format(date);
     } catch (e) {
-      return dateString; // Return original string if formatting fails
+      return dateString;
     }
   }
 
   Future<List<JadwalModel>> _fetchData() async {
-    String? token = await SecureStorage.getToken();
-
-    if (token == null || token.isEmpty) {
-      print('No token found, please log in again.');
-      throw Exception('No token found, please log in again.');
-    }
-
     try {
-      print('Fetching data with token: $token'); // Debugging log
       JadwalService apiService = JadwalService();
       List<JadwalModel> data = await apiService.fetchFoodFishData();
-      print('Data fetched successfully: $data'); // Debugging log
+
+      // Sorting data berdasarkan waktu terbaru
+      data.sort((a, b) =>
+          DateTime.parse(b.onStart).compareTo(DateTime.parse(a.onStart)));
+
       return data;
     } catch (e) {
       print('Error occurred while fetching data: $e');
-      throw Exception('Failed to fetch data');
+      throw Exception('Failed to fetch data: $e');
     }
   }
 }

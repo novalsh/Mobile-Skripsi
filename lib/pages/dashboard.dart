@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:skripsi_mobile/dashboardPage.dart';
+import 'package:intl/intl.dart';
+import 'package:skripsi_mobile/models/jadwal_model.dart';
+import 'package:skripsi_mobile/services/jadwal_service.dart';
 
 class MainDashboardPage extends StatefulWidget {
   const MainDashboardPage({super.key});
@@ -10,6 +12,67 @@ class MainDashboardPage extends StatefulWidget {
 
 class _MainDashboardPageState extends State<MainDashboardPage> {
   bool isAvailable = true; // Status awal toggle
+  List<JadwalModel> _jadwalList = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchJadwalData();
+  }
+
+  void _fetchJadwalData() async {
+    try {
+      JadwalService jadwalService = JadwalService();
+      List<JadwalModel> data = await jadwalService.fetchFoodFishData();
+
+      // Konversi waktu ke lokal dan sort berdasarkan waktu terbaru
+      data.sort((a, b) {
+        DateTime aTime = DateTime.parse(a.onStart).toLocal();
+        DateTime bTime = DateTime.parse(b.onStart).toLocal();
+        return bTime.compareTo(aTime);
+      });
+
+      setState(() {
+        _jadwalList = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print("Error: $e");
+    }
+  }
+
+  String _getNextFeedingTime() {
+    if (_jadwalList.isEmpty) {
+      return "No data"; // Tampilkan pesan jika tidak ada data
+    }
+
+    // Cari waktu terakhir
+    DateTime? latestTime = _jadwalList
+        .map((jadwal) => DateTime.parse(jadwal.onStart))
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+
+    // Konversi ke waktu lokal
+    DateTime localLatestTime = latestTime.toLocal();
+
+    // Tambahkan 6 jam ke waktu lokal
+    DateTime nextFeedingTime = localLatestTime.add(const Duration(hours: 6));
+
+    // Format waktu ke bentuk "HH:mm"
+    return DateFormat("HH:mm").format(nextFeedingTime);
+  }
+
+  num _getTotalFeed() {
+    if (_jadwalList.isEmpty) {
+      return 0.0; // Jika tidak ada data, total adalah 0
+    }
+
+    // Menjumlahkan semua weight dari jadwal
+    return _jadwalList.map((jadwal) => jadwal.weight).reduce((a, b) => a + b);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +103,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 24), // Tambahkan jarak
+            const SizedBox(height: 24),
 
             // Statistik Cards
             Padding(
@@ -48,9 +111,15 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildStatCard("Pemberian pakan selanjutnya", "Jam\n16:00"),
+                  _buildStatCard(
+                    "Pemberian pakan selanjutnya",
+                    _getNextFeedingTime(),
+                  ),
                   _buildStatCardWithToggle("Pakan yang tersedia"),
-                  _buildStatCard("Pakan yang sudah diberikan", "Kg\n10"),
+                  _buildStatCard(
+                    "Pakan yang sudah diberikan",
+                    "${_getTotalFeed().toStringAsFixed(2)} Kg", // Menampilkan total pakan
+                  ),
                 ],
               ),
             ),
@@ -59,8 +128,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
             // Tabel data
             Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0), // Menambahkan padding horizontal
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 decoration: BoxDecoration(
                   color: const Color(0x00275674),
                   borderRadius: const BorderRadius.only(
@@ -80,8 +148,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                     Container(
                       padding: const EdgeInsets.all(16.0),
                       decoration: const BoxDecoration(
-                        color: Color.fromARGB(255, 39, 86,
-                            116), // Warna header tabel sama seperti stat card
+                        color: Color.fromARGB(255, 39, 86, 116),
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(24),
                           topRight: Radius.circular(24),
@@ -102,7 +169,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                           ),
                           Expanded(
                             child: Text(
-                              "Jam",
+                              "Deskripsi",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -124,7 +191,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                           ),
                           Expanded(
                             child: Text(
-                              "Branch",
+                              "Sensor",
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -138,18 +205,24 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                     ),
                     // Isi tabel
                     Expanded(
-                      child: ListView(
-                        children: [
-                          _buildTableRow(
-                              0, "22 April 2024", "12:00", "1.5 Kg", "Alat 1"),
-                          _buildTableRow(
-                              1, "23 April 2024", "14:00", "1.2 Kg", "Alat 1"),
-                          _buildTableRow(
-                              2, "28 April 2024", "10:00", "2.0 Kg", "Alat 1"),
-                          _buildTableRow(
-                              3, "30 April 2024", "08:00", "3.2 Kg", "Alat 1"),
-                        ],
-                      ),
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : _jadwalList.isEmpty
+                              ? const Center(
+                                  child: Text("Tidak ada data jadwal"))
+                              : ListView.builder(
+                                  itemCount: _jadwalList.length,
+                                  itemBuilder: (context, index) {
+                                    JadwalModel jadwal = _jadwalList[index];
+                                    return _buildTableRow(
+                                      index,
+                                      jadwal.onStart,
+                                      jadwal.description,
+                                      "${jadwal.weight} Kg",
+                                      "Sensor ${jadwal.sensor}",
+                                    );
+                                  },
+                                ),
                     ),
                   ],
                 ),
@@ -166,7 +239,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
       width: 100,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 39, 86, 116), // Biru terang
+        color: const Color.fromARGB(255, 39, 86, 116),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -230,23 +303,42 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
   }
 
   Widget _buildTableRow(
-      int index, String date, String time, String feed, String tool) {
-    // Menentukan warna berdasarkan indeks ganjil atau genap
+      int index, String date, String description, String feed, String tool) {
     Color rowColor =
         (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
+
+    // Format tanggal dan jam
+    String formattedDate = _formatDateTime(date);
 
     return Container(
       color: rowColor,
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          _buildTableCell(date),
-          _buildTableCell(time),
+          _buildTableCell(formattedDate),
+          _buildTableCell(description),
           _buildTableCell(feed),
           _buildTableCell(tool),
         ],
       ),
     );
+  }
+
+  String _formatDateTime(String dateString) {
+    try {
+      // Parse string menjadi DateTime
+      DateTime date = DateTime.parse(dateString);
+
+      // Konversi ke waktu lokal
+      DateTime localDate = date.toLocal();
+
+      // Format menjadi 'dd MMMM yyyy HH:mm'
+      return DateFormat('dd MMMM yyyy HH:mm').format(localDate);
+    } catch (e) {
+      // Jika parsing gagal, kembalikan string aslinya
+      print("Error parsing date: $e");
+      return dateString;
+    }
   }
 
   Widget _buildTableCell(String text) {
