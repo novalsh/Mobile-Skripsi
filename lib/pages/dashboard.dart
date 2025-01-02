@@ -115,7 +115,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                     "Pemberian pakan selanjutnya",
                     _getNextFeedingTime(),
                   ),
-                  _buildStatCardWithToggle("Pakan yang tersedia"),
+                 _buildStatCard("Pakan yang tersedia", "N/A"),
                   _buildStatCard(
                     "Pakan yang sudah diberikan",
                     "${_getTotalFeed().toStringAsFixed(2)} Kg", // Menampilkan total pakan
