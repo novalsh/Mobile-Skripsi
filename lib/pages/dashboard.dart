@@ -310,7 +310,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
     try {
       DateTime date = DateTime.parse(dateString);
       DateTime localDate = date.toLocal();
-      return DateFormat('dd MMMM yyyy HH:mm').format(localDate);
+      return DateFormat('d-M-y HH:mm').format(localDate);
     } catch (e) {
       print("Error parsing date: $e");
       return dateString;

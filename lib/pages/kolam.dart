@@ -69,6 +69,7 @@ class KolamPage extends StatelessWidget {
                           _buildHeaderCell("Description"),
                           _buildHeaderCell("Weight"),
                           _buildHeaderCell("Start Time"),
+                          _buildHeaderCell("Target"),
                         ],
                       ),
                     ),
@@ -95,8 +96,9 @@ class KolamPage extends StatelessWidget {
                                 return _buildTableRow(
                                   index,
                                   data[index].description,
-                                  data[index].weight.toString(),
+                                  _formatWeight(data[index].weight),
                                   data[index].onStart,
+                                  _formatWeight(data[index].TargetWeight),
                                 );
                               },
                             );
@@ -137,7 +139,7 @@ class KolamPage extends StatelessWidget {
   }
 
   Widget _buildTableRow(
-      int index, String description, String weight, String onStart) {
+      int index, String description, String weight, String onStart, String TotalWeight) {
     Color rowColor =
         (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
@@ -149,6 +151,7 @@ class KolamPage extends StatelessWidget {
           _buildTableCell(description),
           _buildTableCell(weight),
           _buildTableCell(_formatDate(onStart)),
+          _buildTableCell(TotalWeight),
         ],
       ),
     );
@@ -172,13 +175,20 @@ class KolamPage extends StatelessWidget {
     );
   }
 
-  String _formatDate(String dateString) {
-    try {
-      DateTime date = DateTime.parse(dateString);
-      return DateFormat('d MMMM y').format(date);
-    } catch (e) {
-      return dateString;
+String _formatDate(String dateString) {
+  try {
+    DateTime date = DateTime.parse(dateString);
+    return DateFormat('d-M-y').format(date); // Menggunakan format 'd M y'
+  } catch (e) {
+    return dateString; // Jika parsing gagal, kembalikan string asli
+  }
+}
+
+    String _formatWeight(double weight) {
+    if (weight >= 1000) {
+      return "${(weight / 1000).toStringAsFixed(2)} kg";
     }
+    return "${weight.toStringAsFixed(2)} g";
   }
 
   Future<List<JadwalModel>> _fetchData() async {
