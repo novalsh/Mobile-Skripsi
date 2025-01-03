@@ -11,7 +11,6 @@ class MainDashboardPage extends StatefulWidget {
 }
 
 class _MainDashboardPageState extends State<MainDashboardPage> {
-  bool isAvailable = true; // Status awal toggle
   List<JadwalModel> _jadwalList = [];
   bool _isLoading = true;
 
@@ -21,12 +20,19 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
     _fetchJadwalData();
   }
 
+  // Helper function untuk format berat
+  String _formatWeight(double weight) {
+    if (weight >= 1000) {
+      return "${(weight / 1000).toStringAsFixed(2)} kg";
+    }
+    return "${weight.toStringAsFixed(2)} g";
+  }
+
   void _fetchJadwalData() async {
     try {
       JadwalService jadwalService = JadwalService();
       List<JadwalModel> data = await jadwalService.fetchFoodFishData();
 
-      // Konversi waktu ke lokal dan sort berdasarkan waktu terbaru
       data.sort((a, b) {
         DateTime aTime = DateTime.parse(a.onStart).toLocal();
         DateTime bTime = DateTime.parse(b.onStart).toLocal();
@@ -47,31 +53,31 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
 
   String _getNextFeedingTime() {
     if (_jadwalList.isEmpty) {
-      return "No data"; // Tampilkan pesan jika tidak ada data
+      return "No data";
     }
 
-    // Cari waktu terakhir
     DateTime? latestTime = _jadwalList
         .map((jadwal) => DateTime.parse(jadwal.onStart))
         .reduce((a, b) => a.isAfter(b) ? a : b);
 
-    // Konversi ke waktu lokal
     DateTime localLatestTime = latestTime.toLocal();
-
-    // Tambahkan 6 jam ke waktu lokal
     DateTime nextFeedingTime = localLatestTime.add(const Duration(hours: 6));
 
-    // Format waktu ke bentuk "HH:mm"
     return DateFormat("HH:mm").format(nextFeedingTime);
   }
 
-  num _getTotalFeed() {
+  double _getTotalFeed() {
     if (_jadwalList.isEmpty) {
-      return 0.0; // Jika tidak ada data, total adalah 0
+      return 0.0;
     }
-
-    // Menjumlahkan semua weight dari jadwal
     return _jadwalList.map((jadwal) => jadwal.weight).reduce((a, b) => a + b);
+  }
+
+  double _getLatestTargetWeight() {
+    if (_jadwalList.isEmpty) {
+      return 0.0;
+    }
+    return _jadwalList.first.TargetWeight;
   }
 
   @override
@@ -82,7 +88,6 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Row(
@@ -105,7 +110,6 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
             ),
             const SizedBox(height: 24),
 
-            // Statistik Cards
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
@@ -115,17 +119,19 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                     "Pemberian pakan selanjutnya",
                     _getNextFeedingTime(),
                   ),
-                 _buildStatCard("Pakan yang tersedia", "N/A"),
                   _buildStatCard(
-                    "Pakan yang sudah diberikan",
-                    "${_getTotalFeed().toStringAsFixed(2)} Kg", // Menampilkan total pakan
+                    "Target pakan",
+                    _formatWeight(_getLatestTargetWeight()),
+                  ),
+                  _buildStatCard(
+                    "Total pakan",
+                    _formatWeight(_getTotalFeed()),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
 
-            // Tabel data
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -144,7 +150,6 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                 ),
                 child: Column(
                   children: [
-                    // Header tabel
                     Container(
                       padding: const EdgeInsets.all(16.0),
                       decoration: const BoxDecoration(
@@ -189,6 +194,17 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                               textAlign: TextAlign.center,
                             ),
                           ),
+                          // Expanded(
+                          //   child: Text(
+                          //     "Target",
+                          //     style: TextStyle(
+                          //       fontWeight: FontWeight.bold,
+                          //       fontSize: 16,
+                          //       color: Colors.white,
+                          //     ),
+                          //     textAlign: TextAlign.center,
+                          //   ),
+                          // ),
                           Expanded(
                             child: Text(
                               "Sensor",
@@ -203,7 +219,6 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                         ],
                       ),
                     ),
-                    // Isi tabel
                     Expanded(
                       child: _isLoading
                           ? const Center(child: CircularProgressIndicator())
@@ -218,7 +233,8 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                                       index,
                                       jadwal.onStart,
                                       jadwal.description,
-                                      "${jadwal.weight} Kg",
+                                      _formatWeight(jadwal.weight),
+                                      _formatWeight(jadwal.TargetWeight),
                                       "Sensor ${jadwal.sensor}",
                                     );
                                   },
@@ -236,7 +252,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
 
   Widget _buildStatCard(String title, String value) {
     return Container(
-      width: 100,
+      width: MediaQuery.of(context).size.width * 0.28,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 39, 86, 116),
@@ -268,46 +284,11 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
     );
   }
 
-  Widget _buildStatCardWithToggle(String title) {
-    return Container(
-      width: 100,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isAvailable ? Colors.green : Colors.red,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Switch(
-            value: isAvailable,
-            onChanged: (bool value) {
-              setState(() {
-                isAvailable = value;
-              });
-            },
-            activeColor: Colors.white,
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildTableRow(int index, String date, String description, String feed, String target, String tool) {
+    Color rowColor = (index % 2 == 0) 
+        ? const Color(0xFF274155) 
+        : const Color(0xFF6A96AB);
 
-  Widget _buildTableRow(
-      int index, String date, String description, String feed, String tool) {
-    Color rowColor =
-        (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
-
-    // Format tanggal dan jam
     String formattedDate = _formatDateTime(date);
 
     return Container(
@@ -318,6 +299,7 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
           _buildTableCell(formattedDate),
           _buildTableCell(description),
           _buildTableCell(feed),
+          // _buildTableCell(target),
           _buildTableCell(tool),
         ],
       ),
@@ -326,16 +308,10 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
 
   String _formatDateTime(String dateString) {
     try {
-      // Parse string menjadi DateTime
       DateTime date = DateTime.parse(dateString);
-
-      // Konversi ke waktu lokal
       DateTime localDate = date.toLocal();
-
-      // Format menjadi 'dd MMMM yyyy HH:mm'
       return DateFormat('dd MMMM yyyy HH:mm').format(localDate);
     } catch (e) {
-      // Jika parsing gagal, kembalikan string aslinya
       print("Error parsing date: $e");
       return dateString;
     }
