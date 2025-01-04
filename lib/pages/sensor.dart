@@ -99,28 +99,28 @@ class SensorPage extends StatelessWidget {
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                              Expanded(
-                                child: Text(
-                                  "Latitude",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  "Longitude",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
+                              // Expanded(
+                              //   child: Text(
+                              //     "Latitude",
+                              //     style: TextStyle(
+                              //       fontWeight: FontWeight.bold,
+                              //       fontSize: 16,
+                              //       color: Colors.white,
+                              //     ),
+                              //     textAlign: TextAlign.center,
+                              //   ),
+                              // ),
+                              // Expanded(
+                              //   child: Text(
+                              //     "Longitude",
+                              //     style: TextStyle(
+                              //       fontWeight: FontWeight.bold,
+                              //       fontSize: 16,
+                              //       color: Colors.white,
+                              //     ),
+                              //     textAlign: TextAlign.center,
+                              //   ),
+                              // ),
                               Expanded(
                                 child: Text(
                                   "Status",
@@ -189,9 +189,9 @@ class SensorPage extends StatelessWidget {
                                       return _buildTableRow(
                                         index,
                                         sensor.code,
-                                        sensor.latitude.toString(),
-                                        sensor.longitude.toString(),
-                                        sensor.isOn,
+                                        // sensor.latitude.toString(),
+                                        // sensor.longitude.toString(),
+                                        sensor.isOpen,
                                       );
                                     },
                                   );
@@ -212,8 +212,7 @@ class SensorPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTableRow(int index, String code, String latitude,
-      String longitude, bool isOnline) {
+  Widget _buildTableRow(int index, String code, bool isOnline) {
     Color rowColor =
         (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
@@ -223,8 +222,8 @@ class SensorPage extends StatelessWidget {
       child: Row(
         children: [
           _buildTableCell(code),
-          _buildTableCell(latitude),
-          _buildTableCell(longitude),
+          // _buildTableCell(latitude),
+          // _buildTableCell(longitude),
           _buildTableCell(isOnline ? "Online" : "Offline"),
         ],
       ),
