@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:skripsi_mobile/models/sensor_model.dart';
 import 'package:skripsi_mobile/services/sensor_services.dart';
+import 'package:skripsi_mobile/models/branch_model.dart';
+import 'package:skripsi_mobile/services/branch_services.dart';
 import 'package:skripsi_mobile/utils/secure_storage.dart';
 
 class SensorPage extends StatelessWidget {
@@ -8,7 +10,6 @@ class SensorPage extends StatelessWidget {
 
   Future<String?> _getBranchId() async {
     return await SecureStorage().getBranchId();
-
   }
 
   @override
@@ -58,7 +59,7 @@ class SensorPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Tabel data
+                // Table
                 Expanded(
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -99,28 +100,17 @@ class SensorPage extends StatelessWidget {
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                              // Expanded(
-                              //   child: Text(
-                              //     "Latitude",
-                              //     style: TextStyle(
-                              //       fontWeight: FontWeight.bold,
-                              //       fontSize: 16,
-                              //       color: Colors.white,
-                              //     ),
-                              //     textAlign: TextAlign.center,
-                              //   ),
-                              // ),
-                              // Expanded(
-                              //   child: Text(
-                              //     "Longitude",
-                              //     style: TextStyle(
-                              //       fontWeight: FontWeight.bold,
-                              //       fontSize: 16,
-                              //       color: Colors.white,
-                              //     ),
-                              //     textAlign: TextAlign.center,
-                              //   ),
-                              // ),
+                              Expanded(
+                                child: Text(
+                                  "City",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
                               Expanded(
                                 child: Text(
                                   "Status",
@@ -136,61 +126,72 @@ class SensorPage extends StatelessWidget {
                           ),
                         ),
                         Expanded(
-                          child: FutureBuilder<String?>(
-                            future: _getBranchId(),
-                            builder: (context, branchIdSnapshot) {
-                              if (branchIdSnapshot.connectionState ==
+                          child: FutureBuilder<List<SensorModel>>(
+                            future: SensorService().fetchSensorData(branchId),
+                            builder: (context, sensorSnapshot) {
+                              if (sensorSnapshot.connectionState ==
                                   ConnectionState.waiting) {
                                 return const Center(
                                     child: CircularProgressIndicator());
-                              } else if (!branchIdSnapshot.hasData ||
-                                  branchIdSnapshot.data == null) {
+                              } else if (sensorSnapshot.hasError) {
+                                return Center(
+                                  child: Text(
+                                    'Error: ${sensorSnapshot.error}',
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                );
+                              } else if (!sensorSnapshot.hasData ||
+                                  sensorSnapshot.data!.isEmpty) {
                                 return const Center(
                                   child: Text(
-                                    'Branch ID not found',
-                                    style: TextStyle(color: Colors.red),
+                                    'No data available',
+                                    style: TextStyle(color: Colors.white),
                                   ),
                                 );
                               }
 
-                              final branchId = branchIdSnapshot.data!;
-
-                              return FutureBuilder<List<SensorModel>>(
-                                future: SensorService().fetchSensorData(
-                                    branchId), 
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
+                              final sensors = sensorSnapshot.data!;
+                              return FutureBuilder<List<BranchModel>>(
+                                future: BranchService().fetchBranchData(),
+                                builder: (context, branchSnapshot) {
+                                  if (branchSnapshot.connectionState ==
                                       ConnectionState.waiting) {
                                     return const Center(
                                         child: CircularProgressIndicator());
-                                  } else if (snapshot.hasError) {
+                                  } else if (branchSnapshot.hasError) {
                                     return Center(
                                       child: Text(
-                                        'Error: ${snapshot.error}',
-                                        style:
-                                            const TextStyle(color: Colors.red),
+                                        'Error: ${branchSnapshot.error}',
+                                        style: const TextStyle(
+                                            color: Colors.red),
                                       ),
                                     );
-                                  } else if (!snapshot.hasData ||
-                                      snapshot.data!.isEmpty) {
+                                  } else if (!branchSnapshot.hasData ||
+                                      branchSnapshot.data!.isEmpty) {
                                     return const Center(
                                       child: Text(
-                                        'No data available',
-                                        style: TextStyle(color: Colors.white),
+                                        'No branches found',
+                                        style:
+                                            TextStyle(color: Colors.white),
                                       ),
                                     );
                                   }
 
-                                  final sensors = snapshot.data!;
+                                  final branches = branchSnapshot.data!;
                                   return ListView.builder(
                                     itemCount: sensors.length,
                                     itemBuilder: (context, index) {
                                       final sensor = sensors[index];
+                                      final branch = branches.firstWhere(
+                                          (b) => b.id == sensor.branch_id,
+                                          orElse: () => BranchModel(
+                                              id: sensor.branch_id,
+                                              city: 'Unknown'));
+
                                       return _buildTableRow(
                                         index,
                                         sensor.code,
-                                        // sensor.latitude.toString(),
-                                        // sensor.longitude.toString(),
+                                        branch.city,
                                         sensor.isOpen,
                                       );
                                     },
@@ -212,7 +213,7 @@ class SensorPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTableRow(int index, String code, bool isOnline) {
+  Widget _buildTableRow(int index, String code, String city, bool isOnline) {
     Color rowColor =
         (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
@@ -222,8 +223,7 @@ class SensorPage extends StatelessWidget {
       child: Row(
         children: [
           _buildTableCell(code),
-          // _buildTableCell(latitude),
-          // _buildTableCell(longitude),
+          _buildTableCell(city),
           _buildTableCell(isOnline ? "Online" : "Offline"),
         ],
       ),
@@ -239,8 +239,4 @@ class SensorPage extends StatelessWidget {
       ),
     );
   }
-}
-
-extension on SecureStorage {
-  getBranchId() {}
 }
