@@ -37,6 +37,30 @@ class KolamPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () => _showFormDialog(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF274155),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: const Text(
+                    'Update Target',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             Expanded(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -138,8 +162,8 @@ class KolamPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTableRow(
-      int index, String description, String weight, String onStart, String TotalWeight) {
+  Widget _buildTableRow(int index, String description, String weight,
+      String onStart, String TotalWeight) {
     Color rowColor =
         (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
@@ -175,16 +199,16 @@ class KolamPage extends StatelessWidget {
     );
   }
 
-String _formatDate(String dateString) {
-  try {
-    DateTime date = DateTime.parse(dateString);
-    return DateFormat('d-M-y').format(date); // Menggunakan format 'd M y'
-  } catch (e) {
-    return dateString; // Jika parsing gagal, kembalikan string asli
+  String _formatDate(String dateString) {
+    try {
+      DateTime date = DateTime.parse(dateString);
+      return DateFormat('d-M-y').format(date);
+    } catch (e) {
+      return dateString;
+    }
   }
-}
 
-    String _formatWeight(double weight) {
+  String _formatWeight(double weight) {
     if (weight >= 1000) {
       return "${(weight / 1000).toStringAsFixed(2)} kg";
     }
@@ -196,7 +220,6 @@ String _formatDate(String dateString) {
       JadwalService apiService = JadwalService();
       List<JadwalModel> data = await apiService.fetchFoodFishData();
 
-      // Sorting data berdasarkan waktu terbaru
       data.sort((a, b) =>
           DateTime.parse(b.onStart).compareTo(DateTime.parse(a.onStart)));
 
@@ -204,6 +227,57 @@ String _formatDate(String dateString) {
     } catch (e) {
       print('Error occurred while fetching data: $e');
       throw Exception('Failed to fetch data: $e');
+    }
+  }
+
+  void _showFormDialog(BuildContext context) {
+    final TextEditingController targetWeightController =
+        TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Update TargetWeight"),
+          content: TextField(
+            controller: targetWeightController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: "Enter TargetWeight (grams)",
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                double? targetWeight =
+                    double.tryParse(targetWeightController.text);
+                if (targetWeight != null) {
+                  await _sendTargetWeight(targetWeight);
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Invalid input")),
+                  );
+                }
+              },
+              child: const Text("Submit"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _sendTargetWeight(double targetWeight) async {
+    try {
+      await JadwalService().updateTargetWeight(targetWeight);
+      print("TargetWeight updated successfully.");
+    } catch (e) {
+      print("Failed to update TargetWeight: $e");
     }
   }
 }
