@@ -5,6 +5,7 @@ import 'package:skripsi_mobile/utils/secure_storage.dart';
 import '../models/sensor_model.dart';
 
 class SensorService {
+
   Future<List<SensorModel>> fetchSensorData(String branchId) async {
     final url = Uri.parse('http://103.127.138.198:8080/api/sensors/branch/$branchId');
 

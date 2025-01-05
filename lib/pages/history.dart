@@ -298,6 +298,7 @@ class _HistoryPageState extends State<HistoryPage> {
                       child: Row(
                         children: [
                           _buildHeaderCell("Tanggal"),
+                          _buildHeaderCell("Sensor"),
                           _buildHeaderCell("Catatan"),
                         ],
                       ),
@@ -319,20 +320,45 @@ class _HistoryPageState extends State<HistoryPage> {
                                 child: Text('No data available.'));
                           } else {
                             List<HistoryModel> data = snapshot.data!;
-                            return ListView.builder(
-                              itemCount: data.length,
-                              itemBuilder: (context, index) {
-                                return _buildTableRow(
-                                  index,
-                                  data[index].date,
-                                  data[index].description,
-                                );
+                            return FutureBuilder<List<SensorModel>>(
+                              future: _sensorDataFuture,
+                              builder: (context, sensorSnapshot) {
+                                if (sensorSnapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                      child: CircularProgressIndicator());
+                                } else if (sensorSnapshot.hasError) {
+                                  return Center(
+                                      child: Text(
+                                          'Error: ${sensorSnapshot.error}'));
+                                } else if (!sensorSnapshot.hasData ||
+                                    sensorSnapshot.data!.isEmpty) {
+                                  return const Center(
+                                      child: Text('No sensors available.'));
+                                } else {
+                                  List<SensorModel> sensorData =
+                                      sensorSnapshot.data!;
+                                  return ListView.builder(
+                                    itemCount: data.length,
+                                    itemBuilder: (context, index) {
+                                      // Gunakan _getSensorCode untuk mendapatkan kode sensor
+                                      String sensorCode = _getSensorCode(
+                                          data[index].sensorId, sensorData);
+                                      return _buildTableRow(
+                                        index,
+                                        data[index].date,
+                                        sensorCode,
+                                        data[index].description,
+                                      );
+                                    },
+                                  );
+                                }
                               },
                             );
                           }
                         },
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),
@@ -365,7 +391,8 @@ class _HistoryPageState extends State<HistoryPage> {
     );
   }
 
-  Widget _buildTableRow(int index, String tanggal, String catatan) {
+  Widget _buildTableRow(
+      int index, String tanggal, String sensor, String catatan) {
     Color rowColor =
         (index % 2 == 0) ? const Color(0xFF274155) : const Color(0xFF6A96AB);
 
@@ -375,6 +402,7 @@ class _HistoryPageState extends State<HistoryPage> {
       child: Row(
         children: [
           _buildTableCell(_formatDate(tanggal)),
+          _buildTableCell(sensor),
           _buildTableCell(catatan),
         ],
       ),
@@ -405,6 +433,24 @@ class _HistoryPageState extends State<HistoryPage> {
       return DateFormat('d MMMM y').format(date);
     } catch (e) {
       return dateString;
+    }
+  }
+
+  String _getSensorCode(int sensorId, List<SensorModel> sensorData) {
+    try {
+      final sensor = sensorData.firstWhere((sensor) => sensor.id == sensorId,
+          orElse: () => SensorModel(
+                id: 0,
+                code: 'Unknown',
+                latitude: 0.0,
+                longitude: 0.0,
+                isOn: false,
+                isOpen: false,
+                branch_id: 0,
+              ));
+      return sensor.code;
+    } catch (e) {
+      return 'Unknown';
     }
   }
 }
