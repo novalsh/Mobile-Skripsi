@@ -1,7 +1,5 @@
-import 'dart:ffi';
-
 class JadwalModel {
-  final double weight; // Mengubah Double menjadi double
+  final double weight;
   final double TargetWeight;
   final String onStart;
   final int sensor;
@@ -17,17 +15,11 @@ class JadwalModel {
 
   factory JadwalModel.fromJson(Map<String, dynamic> json) {
     return JadwalModel(
-      weight: (json['weight'] is int) 
-          ? (json['weight'] as int).toDouble() 
-          : (json['weight'] as double),
-      TargetWeight: (json['TargetWeight'] is int)
-          ? (json['TargetWeight'] as int).toDouble()
-          : (json['TargetWeight'] as double),
-      onStart: json['onStart'],
-      sensor: (json['sensor_id'] is int) 
-          ? json['sensor_id'] 
-          : (json['sensor_id'] as double).toInt(),
-      description: json['description'],
+      weight: (json['weight'] ?? 0).toDouble(),
+      TargetWeight: (json['TargetWeight'] ?? 100).toDouble(), // Default ke 100 alih-alih 0
+      onStart: json['onStart'] ?? '',
+      sensor: json['sensor_id'] ?? 0,
+      description: json['description'] ?? '',
     );
   }
 }

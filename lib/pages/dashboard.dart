@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:skripsi_mobile/models/jadwal_model.dart';
 import 'package:skripsi_mobile/services/jadwal_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class MainDashboardPage extends StatefulWidget {
   const MainDashboardPage({super.key});
@@ -13,11 +14,46 @@ class MainDashboardPage extends StatefulWidget {
 class _MainDashboardPageState extends State<MainDashboardPage> {
   List<JadwalModel> _jadwalList = [];
   bool _isLoading = true;
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
+    FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
+    _initializeNotifications();
     _fetchJadwalData();
+  }
+
+  Future<void> _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    
+    const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+    
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future<void> _showWeightWarningNotification(double targetWeight, double actualWeight) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'weight_warning_channel',
+      'Weight Warnings',
+      channelDescription: 'Notifications for weight warnings',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      'Peringatan Berat',
+      'Target berat (${_formatWeight(targetWeight)}) melebihi berat aktual (${_formatWeight(actualWeight)})',
+      platformChannelSpecifics,
+    );
   }
 
   // Helper function untuk format berat
@@ -38,6 +74,13 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
         DateTime bTime = DateTime.parse(b.onStart).toLocal();
         return bTime.compareTo(aTime);
       });
+
+      // Check weights and show notification if needed
+      for (var jadwal in data) {
+        if (jadwal.TargetWeight > jadwal.weight) {
+          await _showWeightWarningNotification(jadwal.TargetWeight, jadwal.weight);
+        }
+      }
 
       setState(() {
         _jadwalList = data;
@@ -194,17 +237,6 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
                               textAlign: TextAlign.center,
                             ),
                           ),
-                          // Expanded(
-                          //   child: Text(
-                          //     "Target",
-                          //     style: TextStyle(
-                          //       fontWeight: FontWeight.bold,
-                          //       fontSize: 16,
-                          //       color: Colors.white,
-                          //     ),
-                          //     textAlign: TextAlign.center,
-                          //   ),
-                          // ),
                           Expanded(
                             child: Text(
                               "Sensor",
@@ -299,7 +331,6 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
           _buildTableCell(formattedDate),
           _buildTableCell(description),
           _buildTableCell(feed),
-          // _buildTableCell(target),
           _buildTableCell(tool),
         ],
       ),

@@ -2,15 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:skripsi_mobile/models/jadwal_model.dart';
 import 'package:skripsi_mobile/utils/secure_storage.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 import '../services/jadwal_service.dart';
 
-class KolamPage extends StatelessWidget {
+class KolamPage extends StatefulWidget {
   const KolamPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final JadwalService apiService = JadwalService();
+  State<KolamPage> createState() => _KolamPageState();
+}
 
+class _KolamPageState extends State<KolamPage> {
+  final JadwalService apiService = JadwalService();
+  late Future<List<JadwalModel>> _dataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _dataFuture = _fetchData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 106, 150, 171),
       body: SafeArea(
@@ -99,19 +112,14 @@ class KolamPage extends StatelessWidget {
                     ),
                     Expanded(
                       child: FutureBuilder<List<JadwalModel>>(
-                        future: _fetchData(),
+                        future: _dataFuture,
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
                           } else if (snapshot.hasError) {
-                            return Center(
-                                child: Text('Error: ${snapshot.error}'));
-                          } else if (!snapshot.hasData ||
-                              snapshot.data!.isEmpty) {
-                            return const Center(
-                                child: Text('No data available.'));
+                            return Center(child: Text('Error: ${snapshot.error}'));
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Center(child: Text('No data available.'));
                           } else {
                             List<JadwalModel> data = snapshot.data!;
                             return ListView.builder(
@@ -217,12 +225,9 @@ class KolamPage extends StatelessWidget {
 
   Future<List<JadwalModel>> _fetchData() async {
     try {
-      JadwalService apiService = JadwalService();
       List<JadwalModel> data = await apiService.fetchFoodFishData();
-
       data.sort((a, b) =>
           DateTime.parse(b.onStart).compareTo(DateTime.parse(a.onStart)));
-
       return data;
     } catch (e) {
       print('Error occurred while fetching data: $e');
@@ -231,8 +236,7 @@ class KolamPage extends StatelessWidget {
   }
 
   void _showFormDialog(BuildContext context) {
-    final TextEditingController targetWeightController =
-        TextEditingController();
+    final TextEditingController targetWeightController = TextEditingController();
 
     showDialog(
       context: context,
@@ -252,12 +256,11 @@ class KolamPage extends StatelessWidget {
               child: const Text("Cancel"),
             ),
             ElevatedButton(
-              onPressed: () async {
-                double? targetWeight =
-                    double.tryParse(targetWeightController.text);
+              onPressed: () {
+                double? targetWeight = double.tryParse(targetWeightController.text);
                 if (targetWeight != null) {
-                  await _sendTargetWeight(targetWeight);
                   Navigator.of(context).pop();
+                  _sendTargetWeight(targetWeight, context);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Invalid input")),
@@ -272,12 +275,30 @@ class KolamPage extends StatelessWidget {
     );
   }
 
-  Future<void> _sendTargetWeight(double targetWeight) async {
+  Future<void> _sendTargetWeight(double targetWeight, BuildContext context) async {
     try {
-      await JadwalService().updateTargetWeight(targetWeight);
+      await apiService.updateTargetWeight(targetWeight);
       print("TargetWeight updated successfully.");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("TargetWeight updated successfully")),
+        );
+        // Refresh data after successful update
+        setState(() {
+          _dataFuture = _fetchData();
+        });
+      }
     } catch (e) {
       print("Failed to update TargetWeight: $e");
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to update TargetWeight: $e")),
+        );
+        // Refresh data even if update fails
+        setState(() {
+          _dataFuture = _fetchData();
+        });
+      }
     }
   }
 }
