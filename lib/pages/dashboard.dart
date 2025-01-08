@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:skripsi_mobile/models/jadwal_model.dart';
 import 'package:skripsi_mobile/services/jadwal_service.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class MainDashboardPage extends StatefulWidget {
   const MainDashboardPage({super.key});
@@ -14,47 +14,47 @@ class MainDashboardPage extends StatefulWidget {
 class _MainDashboardPageState extends State<MainDashboardPage> {
   List<JadwalModel> _jadwalList = [];
   bool _isLoading = true;
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
-    FlutterLocalNotificationsPlugin();
+  // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = 
+  //   FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
-    _initializeNotifications();
+    // _initializeNotifications();
     _fetchJadwalData();
   }
 
-  Future<void> _initializeNotifications() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+  // Future<void> _initializeNotifications() async {
+  //   const AndroidInitializationSettings initializationSettingsAndroid =
+  //       AndroidInitializationSettings('@mipmap/ic_launcher');
     
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-    );
+  //   const InitializationSettings initializationSettings = InitializationSettings(
+  //     android: initializationSettingsAndroid,
+  //   );
     
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  }
+  //   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  // }
 
-  Future<void> _showWeightWarningNotification(double targetWeight, double actualWeight) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'weight_warning_channel',
-      'Weight Warnings',
-      channelDescription: 'Notifications for weight warnings',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
+  // Future<void> _showWeightWarningNotification(double targetWeight, double actualWeight) async {
+  //   const AndroidNotificationDetails androidPlatformChannelSpecifics =
+  //       AndroidNotificationDetails(
+  //     'weight_warning_channel',
+  //     'Weight Warnings',
+  //     channelDescription: 'Notifications for weight warnings',
+  //     importance: Importance.high,
+  //     priority: Priority.high,
+  //   );
 
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+  //   const NotificationDetails platformChannelSpecifics =
+  //       NotificationDetails(android: androidPlatformChannelSpecifics);
 
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      'Peringatan Berat',
-      'Target berat (${_formatWeight(targetWeight)}) melebihi berat aktual (${_formatWeight(actualWeight)})',
-      platformChannelSpecifics,
-    );
-  }
+  //   await flutterLocalNotificationsPlugin.show(
+  //     0,
+  //     'Peringatan Berat',
+  //     'Target berat (${_formatWeight(targetWeight)}) melebihi berat aktual (${_formatWeight(actualWeight)})',
+  //     platformChannelSpecifics,
+  //   );
+  // }
 
   // Helper function untuk format berat
   String _formatWeight(double weight) {
@@ -76,11 +76,11 @@ class _MainDashboardPageState extends State<MainDashboardPage> {
       });
 
       // Check weights and show notification if needed
-      for (var jadwal in data) {
-        if (jadwal.TargetWeight > jadwal.weight) {
-          await _showWeightWarningNotification(jadwal.TargetWeight, jadwal.weight);
-        }
-      }
+      // for (var jadwal in data) {
+      //   if (jadwal.TargetWeight > jadwal.weight) {
+      //     await _showWeightWarningNotification(jadwal.TargetWeight, jadwal.weight);
+      //   }
+      // }
 
       setState(() {
         _jadwalList = data;
