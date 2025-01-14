@@ -192,7 +192,7 @@ class SensorPage extends StatelessWidget {
                                         index,
                                         sensor.code,
                                         branch.city,
-                                        sensor.isOpen,
+                                        sensor.isOn,
                                       );
                                     },
                                   );
